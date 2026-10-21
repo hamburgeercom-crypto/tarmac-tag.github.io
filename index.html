@@ -21,6 +21,8 @@
   - Cat & Mouse "blockades" are virtual Snares (a 50 m zone that costs the Mouse +25 s). Nobody physically blocks a road.
   - Eliminator duels are opt-in (target says "accept") and are scored on route efficiency (distance ridden vs shortest
     route), so the fastest rider does not automatically win.
+  - Positions are raw GPS (CFG.snapPositions=false). The street graph only names streets, projects the flare through junctions and places
+    objectives. If street data cannot load, a real-GPS game will not start (the host sees why) instead of falling back to a fake grid.
   - Hiding modes (Border Control, Cat & Mouse, Outbreak, Gridlock duels) give seekers a fuzzy search-zone ping on a hidden rider
     on a timer (see PING). The zone is off-centre, so the rider is somewhere inside it, not at the middle. Speed does not change ping timing.
   - Classes: Low-CC/High-CC (roads), Foot/Cycle (roads + paths, compass aiming) and Open (no roads, no snapping) each have their own
@@ -220,9 +222,11 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 /* ================= CONFIG ================= */
 const CFG={
   transport:'broadcast',                 // 'broadcast' (same device tabs) | 'websocket' | 'supabase'
-  wsUrl:'https://whasking.hamburgeer-com.workers.dev',  // relay-server.js
+  wsUrl:'wss://your-relay.example.com',  // relay-server.js
   supabaseUrl:'',supabaseKey:'',
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
+  snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
+  overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
   turnUrl:'',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
   boomAccel:3.5,boomMs:7000,
   trailMs:120000,trailGraceMs:3000,
@@ -230,7 +234,7 @@ const CFG={
 };
 CFG.maxRadius=Math.ceil((CFG.maxKmh-CFG.stealthKmh)/CFG.stepKmh)*CFG.stepMeters;
 if(typeof location!=='undefined'){const q=new URLSearchParams(location.search);   // share links like  ?relay=wss://your-worker.workers.dev&turn=https://your-worker.workers.dev/turn
-  if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');}
+  if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');if(q.get('overpass'))CFG.overpassUrl=q.get('overpass');}
 const PROFILE={ // per-class speed bands (km/h). road = your original spec.
   road:{stealth:40,step:5,stepM:30,flare:70,blind:80,max:120,boom:3.5,minBoom:8,snap:'road'},
   foot:{stealth:12,step:3,stepM:30,flare:30,blind:36,max:45,boom:2.2,minBoom:3,snap:'all'},
@@ -283,25 +287,39 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     else if(ex.p&&!pth){ex.p=false;const bx=B.adj.find(e=>e.to===a);if(bx)bx.p=false;}
     A.names.add(name);B.names.add(name);this.segs.push({a,b,name,p:pth});},
   edgesFor(n,ap){const l=ap?n.adj:n.adj.filter(e=>!e.p);return l.length?l:n.adj;},
-  async overpass(q,ms){const hosts=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://lz4.overpass-api.de/api/interpreter'];let last;
-    for(const h of hosts){try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
-      if(!res.ok)throw new Error('HTTP '+res.status);return await res.json();}catch(e){last=e;}}
-    throw last;},
-  async load(lat,lon,r,net){
-    net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.reset();Geo.set(lat,lon);
-    try{
-      const q='[out:json][timeout:25];way["highway"~"^(trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'')+')$"](around:'+r+','+lat+','+lon+');out geom;';
-      const js=await this.overpass(q,30000);
-      for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry)continue;
-        const name=(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road';
-        w.nodes.forEach((id,i)=>{const g=w.geometry[i];if(g){const[x,y]=Geo.xy(g.lat,g.lon);this.addNode(id,x,y);}});
-        const pth=/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'');
-        for(let i=1;i<w.nodes.length;i++)this.addEdge(w.nodes[i-1],w.nodes[i],name,pth);}
-      if(this.segs.length<20)throw new Error('sparse');
-      this.synthetic=false;
-    }catch(e){this.reset();Geo.set(lat,lon);this.synth(r);this.synthetic=true;UI.toast('Street data unavailable (offline or rate-limited). Using a practice grid, drawn on the map.',5000);}
+  async overpass(q){
+    const base=CFG.overpassUrl||(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,'')+'/overpass':'');
+    const hosts=[];if(base)hosts.push([base,40000]);
+    hosts.push(['https://overpass-api.de/api/interpreter',15000],['https://overpass.kumi.systems/api/interpreter',15000],['https://lz4.overpass-api.de/api/interpreter',15000]);
+    const errs=[];
+    for(const[h,ms]of hosts){const name=h.split('/')[2];
+      try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const js=await res.json();if(js.error)throw new Error(js.error);if(js.remark&&/error|timed out|out of memory/i.test(js.remark))throw new Error('server busy');   // a 200 with an error remark is a partial result
+        return js;}
+      catch(e){errs.push(name+': '+(e.name==='TimeoutError'?'timeout':e.message));}}
+    throw new Error(errs.join('; '));},
+  async load(lat,lon,r,net,allowSynth){
+    net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
+    const types='trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'');
+    const deadline=Date.now()+75000;let err=null,got=false,usedR=r;
+    for(const rr of[r,Math.round(r*.55)]){                                    // second try covers a smaller area if the servers are struggling
+      if(got||Date.now()>deadline)break;usedR=rr;
+      try{const q='[out:json][timeout:25];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';
+        const js=await this.overpass(q);this.reset();Geo.set(lat,lon);
+        for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry)continue;
+          const name=(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road';
+          w.nodes.forEach((id,i)=>{const g=w.geometry[i];if(g){const xy=Geo.xy(g.lat,g.lon);this.addNode(id,xy[0],xy[1]);}});
+          const pth=/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'');
+          for(let i=1;i<w.nodes.length;i++)this.addEdge(w.nodes[i-1],w.nodes[i],name,pth);}
+        if(this.segs.length<20)throw new Error('almost no roads returned here');
+        got=true;}
+      catch(e){err=e.message;}}
+    if(got){if(usedR<r)UI.toast('Street data loaded for a smaller area ('+usedR+' m).',4000);}
+    else if(allowSynth){this.reset();Geo.set(lat,lon);this.synth(r);this.synthetic=true;UI.toast('Street data unavailable, using a practice grid. ('+err+')',6000);}
+    else{this.reset();Geo.set(lat,lon);this.failed=err||'unknown error';console.warn('Street data failed:',this.failed);}
     this.finish(r);
-    await this.loadPOIs(lat,lon,r);
+    if(got&&(G.cfg.poi||'street')!=='street')await this.loadPOIs(lat,lon,r);
   },
   async loadPOIs(lat,lon,r){
     this.pois=[];
@@ -309,7 +327,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
       kinds.forEach((k,i)=>{const n=this.junc[(i*37+11)%this.junc.length];this.pois.push({x:n.x+25,y:n.y+20,name:nm[i],kind:k});});return;}
     try{const a='(around:'+r+','+lat+','+lon+')';
       const q='[out:json][timeout:25];(nwr["tourism"~"^(attraction|museum|gallery|viewpoint|zoo|theme_park|artwork)$"]["name"]'+a+';nwr["historic"]["name"]'+a+';nwr["leisure"~"^(park|stadium)$"]["name"]'+a+';nwr["amenity"~"^(restaurant|fast_food|cafe|pub|bar|cinema|theatre|marketplace)$"]["name"]'+a+';nwr["shop"~"^(mall|supermarket)$"]["name"]'+a+';);out center 500;';
-      const js=await this.overpass(q,25000),seen=new Set();
+      const js=await this.overpass(q),seen=new Set();
       for(const e of js.elements||[]){const t=e.tags||{},c=e.center||e;if(c.lat==null||!t.name||seen.has(t.name))continue;seen.add(t.name);
         const kind=(t.tourism||t.historic||/^(park|stadium)$/.test(t.leisure||''))?'tourist':/^(restaurant|fast_food|cafe|pub|bar)$/.test(t.amenity||'')?'food':'other';
         const[x,y]=Geo.xy(c.lat,c.lon);this.pois.push({x,y,name:t.name,kind});}
@@ -524,13 +542,14 @@ function rebase(){for(const p of P.values()){if(p.lat==null)continue;[p.x,p.y]=G
 /* Snap -> publish (used by GPS, sim rider and bots). Broadcast: lat, lon, snapped point, heading, speed, accel, flare path */
 function publish(src,lat,lon,kmh,hdg,acc,bu,aim,ac){
   const pr=prof(src),ap=pr.snap==='all',[x,y]=Geo.xy(lat,lon),old=P.get(src.id);
-  const sn=(Graph.ready&&pr.snap!=='none')?Graph.snap(x,y,hdg,kmh/3.6,old&&old.seg,ap):{x,y,seg:null};
+  const sn0=(Graph.ready&&pr.snap!=='none'&&Graph.segs.length)?Graph.snap(x,y,hdg,kmh/3.6,old&&old.seg,ap):{x,y,seg:null};
+  const sn=CFG.snapPositions?sn0:{x,y,seg:sn0.seg};                      // raw GPS position. The segment is only used to name the street and project the flare.
   const[sla,slo]=Geo.ll(sn.x,sn.y);let fl=[];
   const wantFl=kmh>pr.flare-pr.step*2||(G.d&&G.d.flag&&G.d.flag.by===src.id);
   const rd=v=>+v.toFixed(5);
   if(wantFl){
-    if(pr.snap==='none')fl=[200,400,600].map(d=>Geo.ll(sn.x+Math.sin(hdg*D2R)*d,sn.y+Math.cos(hdg*D2R)*d).map(rd));   // open class: straight-line projection
-    else if(Graph.ready&&sn.seg!=null)fl=Graph.walk(sn.x,sn.y,sn.seg,hdg,3,ap).pts.slice(1).map(q=>Geo.ll(q[0],q[1]).map(rd));}
+    if(pr.snap==='none'||sn.seg==null||!Graph.ready)fl=[200,400,600].map(d=>Geo.ll(sn.x+Math.sin(hdg*D2R)*d,sn.y+Math.cos(hdg*D2R)*d).map(rd));   // open class, or no road known here: straight-line projection
+    else fl=Graph.walk(sn.x,sn.y,sn.seg,hdg,3,ap).pts.slice(1).map(q=>Geo.ll(q[0],q[1]).map(rd));}
   const m={type:'pos',i:src.id,n:src.name,k:src.bike,b:src.bot?1:0,lat,lon,sla,slo,spd:+kmh.toFixed(1),hdg:Math.round(hdg),acc:+acc.toFixed(2),bu:bu||0,am:Math.round(aim==null?hdg:aim),ac:Math.round(ac==null?5:ac),fl,st:sn.seg!=null?Graph.segs[sn.seg].name:''};
   applyPos(m,sn.seg);Net.send(m);}
 
@@ -561,7 +580,7 @@ function onBoom(m){const p=P.get(m.id);if(p)p.boomUntil=m.until;Sfx.boom();Say.s
 
 const Sim={on:false,w:null,tm:null,lobbyTm:null,
   startLobby(){clearInterval(this.lobbyTm);this.lobbyTm=setInterval(()=>{if(this.on&&!this.w)Me.feed(DEMO.lat,DEMO.lon,0,0,5,now(),true);},1000);},
-  begin(){if(!this.on||!Graph.ready)return;
+  begin(){if(!this.on||!Graph.ready||!Graph.junc.length)return;
     const cs=Graph.junc.filter(j=>hyp(j.x,j.y)<300),nd=pick(cs.length?cs:Graph.junc),ap=clsOf(me.bike)==='foot';
     this.w=new Walker(nd.id,pick(Graph.edgesFor(nd,ap)).to);this.w.ap=ap;Me.last=null;Me.la=null;$('#simSpd').max=prof(me).max;$('#simSpd').value=0;$('#simVal').textContent=0;
     clearInterval(this.tm);this.tm=setInterval(()=>{const w=this.w;if(!w)return;w.step(.2);if(w.missed){UI.toast('No '+({L:'left',R:'right',S:'straight'})[w.missed]+' turn there. Went straight on.',1800);w.missed=null;}const q=w.pos(),[la,lo]=Geo.ll(q.x,q.y);Me.feed(la,lo,w.v,q.hdg,4,now(),true);},200);},
@@ -646,7 +665,8 @@ const Host={tm:null,n:0,
       const far=Math.max(...pts.map(q=>{const xy=Geo.xy(q[0],q[1]);return hyp(xy[0],xy[1]);}));r=Math.min(4500,Math.max(G.cfg.r,Math.round(far+500)));
       if(r>3000)UI.toast('Big area: the street download may take a while.',4000);}
     const hasFoot=humans.some(q=>clsOf(q.bike)==='foot'),nRoad=humans.filter(q=>clsOf(q.bike)==='road').length+G.cfg.bots,net={paths:hasFoot,roadJ:nRoad>0||!hasFoot};
-    await Graph.load(c.lat,c.lon,r,net);rebase();
+    await Graph.load(c.lat,c.lon,r,net,G.cfg.center==='demo'||Sim.on);rebase();
+    if(Graph.failed){UI.toast('Could not load street data ('+Graph.failed+'). Check the connection, try a smaller arena, or deploy the updated Worker (it caches street data). Nothing was started.',9000);$('#btnStart').disabled=false;return;}
     G.arena={lat:c.lat,lon:c.lon,r,id:rid(),net};Arena.id=G.arena.id;
     G.pl={};G.d={};G.result=null;H.reset();Trails.m.clear();Bots.spawn(G.cfg.bots);
     M.setup();{const lim=timeLimitMin();G.d.dur=lim?lim*60000:1e12;}G.status='countdown';G.startAt=now()+CFG.countdownMs;
@@ -1375,7 +1395,8 @@ function onNet(m){
 
 const Arena={id:null,
   async ensure(){const a=G.arena;if(!a||this.id===a.id)return;this.id=a.id;
-    await Graph.load(a.lat,a.lon,a.r,a.net);rebase();View.fit();Sim.begin();startInputs();}};
+    await Graph.load(a.lat,a.lon,a.r,a.net,G.cfg.center==='demo'||Sim.on);rebase();View.fit();Sim.begin();startInputs();
+    if(Graph.failed)UI.toast('Roads did not load on this phone ('+Graph.failed+'). Positions still work; street names and flares are limited.',6000);}};
 function startInputs(){if($('#chkVoice').checked||$('#chkShout').checked)Voice.start();if($('#chkShout').checked)Mic.startShout();if($('#chkChat').checked&&G.cfg.chat!=='off')Chat.start();}
 
 /* ================= wiring ================= */
