@@ -277,6 +277,15 @@ const Geo={lat0:0,lon0:0,kx:1,ky:1,
   ll(x,y){return[this.lat0+y/this.ky,this.lon0+x/this.kx];}};
 Geo.set(DEMO.lat,DEMO.lon);
 
+/* ===== local road cache: IndexedDB with an in-memory fallback, so a place you have played in loads with no network ===== */
+const GCache={db:null,mem:new Map(),ttl:14*864e5,
+  key(lat,lon,r,paths){const q=v=>(Math.round(v/.002)*.002).toFixed(3);return q(lat)+','+q(lon)+','+r+','+(paths?1:0);},
+  open(){if(this.db||typeof indexedDB==='undefined')return Promise.resolve(this.db);
+    return new Promise(res=>{try{const rq=indexedDB.open('tarmac-tag',1);rq.onupgradeneeded=()=>rq.result.createObjectStore('roads');rq.onsuccess=()=>{this.db=rq.result;res(this.db);};rq.onerror=()=>res(null);rq.onblocked=()=>res(null);}catch(e){res(null);}});},
+  async get(k){const m=this.mem.get(k);if(m&&Date.now()-m.t<this.ttl)return m.ways;
+    const db=await this.open();if(!db)return null;
+    return new Promise(res=>{try{const rq=db.transaction('roads').objectStore('roads').get(k);rq.onsuccess=()=>{const v=rq.result;if(v&&Date.now()-v.t<this.ttl){this.mem.set(k,v);res(v.ways);}else res(null);};rq.onerror=()=>res(null);}catch(e){res(null);}});},
+  async put(k,ways){const v={t:Date.now(),ways};this.mem.set(k,v);const db=await this.open();if(!db)return;try{db.transaction('roads','readwrite').objectStore('roads').put(v,k);}catch(e){}}};
 const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
   pois:[],roadJ:true,
   reset(){this.ready=false;this.nodes=new Map();this.segs=[];this.grid=new Map();this.junc=[];this.pois=[];},
@@ -287,35 +296,39 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     else if(ex.p&&!pth){ex.p=false;const bx=B.adj.find(e=>e.to===a);if(bx)bx.p=false;}
     A.names.add(name);B.names.add(name);this.segs.push({a,b,name,p:pth});},
   edgesFor(n,ap){const l=ap?n.adj:n.adj.filter(e=>!e.p);return l.length?l:n.adj;},
-  async overpass(q){
+  compact(js){const out=[];for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry||!w.nodes)continue;
+      out.push({n:(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road',p:/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'')?1:0,g:w.nodes.map((id,i)=>[id,w.geometry[i]?w.geometry[i].lat:null,w.geometry[i]?w.geometry[i].lon:null])});}
+    return out;},
+  build(ways){for(const w of ways){for(const q of w.g){if(q[1]==null)continue;const xy=Geo.xy(q[1],q[2]);this.addNode(q[0],xy[0],xy[1]);}
+      for(let i=1;i<w.g.length;i++)this.addEdge(w.g[i-1][0],w.g[i][0],w.n,!!w.p);}},
+  async overpass(q){                                   // ask every server at once and take the first good answer
     const base=CFG.overpassUrl||(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,'')+'/overpass':'');
-    const hosts=[];if(base)hosts.push([base,40000]);
-    hosts.push(['https://overpass-api.de/api/interpreter',15000],['https://overpass.kumi.systems/api/interpreter',15000],['https://lz4.overpass-api.de/api/interpreter',15000]);
-    const errs=[];
-    for(const[h,ms]of hosts){const name=h.split('/')[2];
-      try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:AbortSignal.timeout?AbortSignal.timeout(ms):undefined});
+    const hosts=[];if(base)hosts.push([base,45000]);
+    for(const h of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://lz4.overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'])hosts.push([h,30000]);
+    const errs=[],ctrls=[];
+    const tries=hosts.map(([h,ms])=>(async()=>{const name=h.split('/')[2],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),ms);ctrls.push(ctl);
+      try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:ctl.signal});
         if(!res.ok)throw new Error('HTTP '+res.status);
-        const js=await res.json();if(js.error)throw new Error(js.error);if(js.remark&&/error|timed out|out of memory/i.test(js.remark))throw new Error('server busy');   // a 200 with an error remark is a partial result
+        const js=await res.json();if(js.error)throw new Error(js.error);if(js.remark&&/error|timed out|out of memory/i.test(js.remark))throw new Error('server busy');
         return js;}
-      catch(e){errs.push(name+': '+(e.name==='TimeoutError'?'timeout':e.message));}}
-    throw new Error(errs.join('; '));},
+      catch(e){errs.push(name+': '+((e.name==='AbortError'||e.name==='TimeoutError')?'no answer in '+ms/1000+' s':e.message));throw e;}
+      finally{clearTimeout(to);}})());
+    try{const js=await Promise.any(tries);ctrls.forEach(c=>c.abort());return js;}
+    catch(e){throw new Error(errs.join('; '));}},
   async load(lat,lon,r,net,allowSynth){
     net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
     const types='trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'');
-    const deadline=Date.now()+75000;let err=null,got=false,usedR=r;
-    for(const rr of[r,Math.round(r*.55)]){                                    // second try covers a smaller area if the servers are struggling
+    const deadline=Date.now()+100000;let err=null,got=false,usedR=r,fromCache=false;
+    for(const rr of[r,Math.round(r*.6),Math.round(r*.35)]){                    // each retry covers a smaller area
       if(got||Date.now()>deadline)break;usedR=rr;
-      try{const q='[out:json][timeout:25];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';
-        const js=await this.overpass(q);this.reset();Geo.set(lat,lon);
-        for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry)continue;
-          const name=(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road';
-          w.nodes.forEach((id,i)=>{const g=w.geometry[i];if(g){const xy=Geo.xy(g.lat,g.lon);this.addNode(id,xy[0],xy[1]);}});
-          const pth=/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'');
-          for(let i=1;i<w.nodes.length;i++)this.addEdge(w.nodes[i-1],w.nodes[i],name,pth);}
+      try{const key=GCache.key(lat,lon,rr,net.paths);let ways=await GCache.get(key);fromCache=!!ways;
+        if(!ways){const q='[out:json][timeout:30];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';ways=this.compact(await this.overpass(q));}
+        this.reset();Geo.set(lat,lon);this.build(ways);
         if(this.segs.length<20)throw new Error('almost no roads returned here');
+        if(!fromCache)GCache.put(key,ways);
         got=true;}
       catch(e){err=e.message;}}
-    if(got){if(usedR<r)UI.toast('Street data loaded for a smaller area ('+usedR+' m).',4000);}
+    if(got){if(usedR<r)UI.toast('Street data loaded for a smaller area ('+usedR+' m).',4000);else if(fromCache)console.info('Street data from the local cache.');}
     else if(allowSynth){this.reset();Geo.set(lat,lon);this.synth(r);this.synthetic=true;UI.toast('Street data unavailable, using a practice grid. ('+err+')',6000);}
     else{this.reset();Geo.set(lat,lon);this.failed=err||'unknown error';console.warn('Street data failed:',this.failed);}
     this.finish(r);
