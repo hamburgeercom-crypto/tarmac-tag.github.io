@@ -23,6 +23,8 @@
     route), so the fastest rider does not automatically win.
   - Positions are raw GPS (CFG.snapPositions=false). The street graph only names streets, projects the flare through junctions and places
     objectives. If street data cannot load, a real-GPS game will not start (the host sees why) instead of falling back to a fake grid.
+  - Street data has two independent sources that race: OpenFreeMap vector tiles (OpenStreetMap data, no API key) and the Overpass servers.
+    The first valid answer wins and is cached on the phone for 14 days. Open the console to see "Street data source".
   - Hiding modes (Border Control, Cat & Mouse, Outbreak, Gridlock duels) give seekers a fuzzy search-zone ping on a hidden rider
     on a timer (see PING). The zone is off-centre, so the rider is somewhere inside it, not at the middle. Speed does not change ping timing.
   - Classes: Low-CC/High-CC (roads), Foot/Cycle (roads + paths, compass aiming) and Open (no roads, no snapping) each have their own
@@ -222,7 +224,7 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 /* ================= CONFIG ================= */
 const CFG={
   transport:'broadcast',                 // 'broadcast' (same device tabs) | 'websocket' | 'supabase'
-  wsUrl:'https://whasking.hamburgeer-com.workers.dev',  // relay-server.js
+  wsUrl:'wss://your-relay.example.com',  // relay-server.js
   supabaseUrl:'',supabaseKey:'',
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
@@ -277,6 +279,78 @@ const Geo={lat0:0,lon0:0,kx:1,ky:1,
   ll(x,y){return[this.lat0+y/this.ky,this.lon0+x/this.kx];}};
 Geo.set(DEMO.lat,DEMO.lon);
 
+/* ===== OpenFreeMap vector tiles: an independent road + POI source (OpenMapTiles schema, built from OpenStreetMap) ===== */
+const MVT={
+  async tile(url,signal){const res=await fetch(url,{signal});if(!res.ok)throw new Error('tile HTTP '+res.status);let buf=await res.arrayBuffer();const u=new Uint8Array(buf);
+    if(u[0]===0x1f&&u[1]===0x8b&&typeof DecompressionStream!=='undefined')buf=await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    return this.decode(buf);},
+  decode(buf){const u8=new Uint8Array(buf),dv=new DataView(buf),td=new TextDecoder();let pos=0;
+    const varint=()=>{let r=0,m=1,b;do{b=u8[pos++];r+=(b&127)*m;m*=128;}while(b&128);return r;};
+    const skip=w=>{if(w===0)varint();else if(w===1)pos+=8;else if(w===2)pos+=varint();else if(w===5)pos+=4;};
+    const zz=n=>n%2?-(n+1)/2:n/2;
+    const readValue=end=>{let v=null;while(pos<end){const t=varint(),f=t>>3,w=t&7;
+      if(f===1&&w===2){const n=varint();v=td.decode(u8.subarray(pos,pos+n));pos+=n;}
+      else if(w===0){v=varint();if(f===6)v=zz(v);else if(f===7)v=!!v;}
+      else if(w===1){v=dv.getFloat64(pos,true);pos+=8;}else if(w===5){v=dv.getFloat32(pos,true);pos+=4;}else skip(w);}return v;};
+    const readFeature=end=>{const F={type:0,tags:[],cmds:[]};
+      while(pos<end){const t=varint(),f=t>>3,w=t&7;
+        if(f===2&&w===2){const n=varint(),e=pos+n;while(pos<e)F.tags.push(varint());}
+        else if(f===3&&w===0)F.type=varint();
+        else if(f===4&&w===2){const n=varint(),e=pos+n;while(pos<e)F.cmds.push(varint());}
+        else skip(w);}return F;};
+    const readLayer=end=>{const L={name:'',keys:[],vals:[],raw:[],ext:4096};
+      while(pos<end){const t=varint(),f=t>>3,w=t&7;
+        if(f===1&&w===2){const n=varint();L.name=td.decode(u8.subarray(pos,pos+n));pos+=n;}
+        else if(f===2&&w===2){const n=varint(),e=pos+n;L.raw.push(readFeature(e));pos=e;}
+        else if(f===3&&w===2){const n=varint();L.keys.push(td.decode(u8.subarray(pos,pos+n)));pos+=n;}
+        else if(f===4&&w===2){const n=varint(),e=pos+n;L.vals.push(readValue(e));pos=e;}
+        else if(f===5&&w===0)L.ext=varint();
+        else skip(w);}
+      const feats=L.raw.map(F=>{const props={};for(let i=0;i+1<F.tags.length;i+=2)props[L.keys[F.tags[i]]]=L.vals[F.tags[i+1]];
+        const lines=[];let cur=null,x=0,y=0,i=0;
+        while(i<F.cmds.length){const c=F.cmds[i++],id=c&7,n=c>>3;
+          if(id===1){for(let k=0;k<n;k++){x+=zz(F.cmds[i++]);y+=zz(F.cmds[i++]);if(F.type===1)lines.push([[x,y]]);else{cur=[[x,y]];lines.push(cur);}}}
+          else if(id===2){for(let k=0;k<n;k++){x+=zz(F.cmds[i++]);y+=zz(F.cmds[i++]);if(cur)cur.push([x,y]);}}
+          else if(id===7){}}
+        return{type:F.type,props,geom:lines};});
+      return{name:L.name,ext:L.ext,feats};};
+    const layers={};
+    while(pos<u8.length){const t=varint(),f=t>>3,w=t&7;
+      if(f===3&&w===2){const n=varint(),e=pos+n,L=readLayer(e);pos=e;layers[L.name]=L;}else skip(w);}
+    return layers;}};
+const tileLL=(z,tx,ty,px,py,ext)=>{const n=Math.pow(2,z),X=(tx+px/ext)/n,Y=(ty+py/ext)/n;return[Math.atan(Math.sinh(Math.PI*(1-2*Y)))/D2R,X*360-180];};
+function nodeWays(lines,nsegs){            // lines: [{p,pts:[[x,y]]}] in metres. Returns ways with shared node ids and one street name each
+  const CELL=40,grid=new Map(),segs=[];
+  const put=(g,s)=>{const x0=Math.floor(Math.min(s.ax,s.bx)/CELL),x1=Math.floor(Math.max(s.ax,s.bx)/CELL),y0=Math.floor(Math.min(s.ay,s.by)/CELL),y1=Math.floor(Math.max(s.ay,s.by)/CELL);
+    for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(g.get(k)||g.set(k,[]).get(k)).push(s);}};
+  lines.forEach((L,li)=>{for(let i=1;i<L.pts.length;i++){const s={li,i,ax:L.pts[i-1][0],ay:L.pts[i-1][1],bx:L.pts[i][0],by:L.pts[i][1]};segs.push(s);put(grid,s);}});
+  const ins=new Map();   // T-junctions: a road that ends on another road's segment gets a vertex inserted there, so they connect
+  lines.forEach((L,li)=>{if(L.pts.length<2)return;for(const e of[L.pts[0],L.pts[L.pts.length-1]]){const cx=Math.floor(e[0]/CELL),cy=Math.floor(e[1]/CELL);let best=null;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=grid.get((cx+dx)+','+(cy+dy));if(!l)continue;
+      for(const s of l){if(s.li===li)continue;const r=segDist(e[0],e[1],s.ax,s.ay,s.bx,s.by);
+        if(r.d<3&&(!best||r.d<best.d)&&hyp(e[0]-s.ax,e[1]-s.ay)>2.5&&hyp(e[0]-s.bx,e[1]-s.by)>2.5)best={d:r.d,s,t:r.t};}}
+    if(best){const k=best.s.li+'|'+best.s.i;(ins.get(k)||ins.set(k,[]).get(k)).push({t:best.t,x:e[0],y:e[1]});}}});
+  lines.forEach((L,li)=>{const np=[];for(let k=0;k<L.pts.length;k++){np.push(L.pts[k]);if(k<L.pts.length-1){const a=ins.get(li+'|'+(k+1));if(a){a.sort((u,v)=>u.t-v.t);for(const q of a)np.push([q.x,q.y]);}}}L.pts=np;});
+  const ng=new Map();for(const s of nsegs)put(ng,s);
+  const nameAt=(mx,my)=>{const cx=Math.floor(mx/CELL),cy=Math.floor(my/CELL);let best=null;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=ng.get((cx+dx)+','+(cy+dy));if(!l)continue;for(const s of l){const d=segDist(mx,my,s.ax,s.ay,s.bx,s.by).d;if(d<9&&(!best||d<best.d))best={d,n:s.n};}}
+    return best?best.n:'unnamed road';};
+  const NC=3,nodes=new Map();let nid=0;
+  const nodeAt=(x,y)=>{const cx=Math.floor(x/NC),cy=Math.floor(y/NC);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=nodes.get((cx+dx)+','+(cy+dy));if(l)for(const n of l)if(hyp(n.x-x,n.y-y)<2.5)return n;}
+    const n={id:'v'+(nid++),x,y};const k=cx+','+cy;(nodes.get(k)||nodes.set(k,[]).get(k)).push(n);return n;};
+  const ways=[];
+  for(const L of lines){let run=null,runName=null;
+    for(let i=1;i<L.pts.length;i++){const a=nodeAt(L.pts[i-1][0],L.pts[i-1][1]),b=nodeAt(L.pts[i][0],L.pts[i][1]);if(a===b)continue;
+      const nm=nameAt((a.x+b.x)/2,(a.y+b.y)/2);
+      if(!run||nm!==runName){run={n:nm,p:L.p?1:0,g:[]};runName=nm;ways.push(run);run.g.push(a);}
+      run.g.push(b);}}
+  return ways.map(w=>({n:w.n,p:w.p,g:w.g.map(n=>{const ll=Geo.ll(n.x,n.y);return[n.id,ll[0],ll[1]];})}));}
+function connectedShare(ways){const par=new Map(),find=a=>{while(par.get(a)!==a){par.set(a,par.get(par.get(a)));a=par.get(a);}return a;};
+  for(const w of ways)for(const q of w.g)if(!par.has(q[0]))par.set(q[0],q[0]);
+  for(const w of ways)for(let i=1;i<w.g.length;i++){const a=find(w.g[i-1][0]),b=find(w.g[i][0]);if(a!==b)par.set(a,b);}
+  const cnt=new Map();for(const k of par.keys()){const r=find(k);cnt.set(r,(cnt.get(r)||0)+1);}
+  return par.size?Math.max(...cnt.values())/par.size:0;}
 /* ===== local road cache: IndexedDB with an in-memory fallback, so a place you have played in loads with no network ===== */
 const GCache={db:null,mem:new Map(),ttl:14*864e5,
   key(lat,lon,r,paths){const q=v=>(Math.round(v/.002)*.002).toFixed(3);return q(lat)+','+q(lon)+','+r+','+(paths?1:0);},
@@ -301,12 +375,12 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     return out;},
   build(ways){for(const w of ways){for(const q of w.g){if(q[1]==null)continue;const xy=Geo.xy(q[1],q[2]);this.addNode(q[0],xy[0],xy[1]);}
       for(let i=1;i<w.g.length;i++)this.addEdge(w.g[i-1][0],w.g[i][0],w.n,!!w.p);}},
-  async overpass(q){                                   // ask every server at once and take the first good answer
+  async overpass(q,parent,msDirect){                    // ask every server at once and take the first good answer
     const base=CFG.overpassUrl||(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,'')+'/overpass':'');
     const hosts=[];if(base)hosts.push([base,45000]);
-    for(const h of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://lz4.overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'])hosts.push([h,30000]);
+    for(const h of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://lz4.overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'])hosts.push([h,msDirect||30000]);
     const errs=[],ctrls=[];
-    const tries=hosts.map(([h,ms])=>(async()=>{const name=h.split('/')[2],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),ms);ctrls.push(ctl);
+    const tries=hosts.map(([h,ms])=>(async()=>{const name=h.split('/')[2],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),ms);ctrls.push(ctl);if(parent)parent.addEventListener('abort',()=>ctl.abort());
       try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:ctl.signal});
         if(!res.ok)throw new Error('HTTP '+res.status);
         const js=await res.json();if(js.error)throw new Error(js.error);if(js.remark&&/error|timed out|out of memory/i.test(js.remark))throw new Error('server busy');
@@ -315,6 +389,40 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
       finally{clearTimeout(to);}})());
     try{const js=await Promise.any(tries);ctrls.forEach(c=>c.abort());return js;}
     catch(e){throw new Error(errs.join('; '));}},
+  async ofmWays(lat,lon,r,net,signal){
+    let tj=this._tj&&Date.now()-this._tj.t<36e5?this._tj.j:null;
+    if(!tj){const rs=await fetch('https://tiles.openfreemap.org/planet',{signal});if(!rs.ok)throw new Error('tilejson HTTP '+rs.status);tj=await rs.json();this._tj={t:Date.now(),j:tj};}
+    const tpl=tj.tiles&&tj.tiles[0];if(!tpl)throw new Error('no tile url');
+    const z=Math.min(tj.maxzoom||14,14),n=Math.pow(2,z),dLat=r/110540,dLon=r/(111320*Math.cos(lat*D2R));
+    const TX=l=>Math.floor((l+180)/360*n),TY=a=>{const sn=Math.sin(a*D2R);return Math.floor((.5-Math.log((1+sn)/(1-sn))/(4*Math.PI))*n);};
+    const x0=TX(lon-dLon),x1=TX(lon+dLon),y0=TY(lat+dLat),y1=TY(lat-dLat);
+    if((x1-x0+1)*(y1-y0+1)>36)throw new Error('area too large for tiles');
+    const jobs=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)jobs.push(MVT.tile(tpl.replace('{z}',z).replace('{x}',x).replace('{y}',y),signal).then(t=>({t,x,y})));
+    const tiles=await Promise.all(jobs),roadC=['trunk','primary','secondary','tertiary','minor'],pathC=['path','track','service'];
+    const lines=[],nsegs=[],pois=[];
+    for(const{t,x,y}of tiles){const tr=t.transportation,nm=t.transportation_name,po=t.poi;
+      const toXY=(L,q)=>{const ll=tileLL(z,x,y,q[0],q[1],L.ext);return Geo.xy(ll[0],ll[1]);};
+      const inside=(L,a,b)=>{const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;return mx>=0&&mx<L.ext&&my>=0&&my<L.ext;};   // buffer overlap: each segment is kept by the tile that holds its midpoint
+      if(tr)for(const f of tr.feats){if(f.type!==2)continue;const c=f.props['class'],isP=pathC.includes(c);if(!(roadC.includes(c)||(net.paths&&isP)))continue;
+        for(const ln of f.geom){let piece=null;for(let i=1;i<ln.length;i++){if(inside(tr,ln[i-1],ln[i])){if(!piece){piece={p:isP,pts:[toXY(tr,ln[i-1])]};lines.push(piece);}piece.pts.push(toXY(tr,ln[i]));}else piece=null;}}}
+      if(nm)for(const f of nm.feats){if(f.type!==2)continue;const name=f.props.name||f.props['name:latin']||f.props.name_en||f.props.ref;if(!name)continue;
+        for(const ln of f.geom)for(let i=1;i<ln.length;i++){const a=toXY(nm,ln[i-1]),b=toXY(nm,ln[i]);nsegs.push({ax:a[0],ay:a[1],bx:b[0],by:b[1],n:name});}}
+      if(po)for(const f of po.feats){if(f.type!==1||!f.props.name)continue;const q=f.geom[0][0];if(q[0]<0||q[0]>=po.ext||q[1]<0||q[1]>=po.ext)continue;
+        const c=f.props['class']||'',sc=f.props.subclass||'',kind=/attraction|museum|gallery|zoo|castle|monument|viewpoint|artwork|stadium|park|theatre|cinema|landmark|memorial|ruins/.test(c+' '+sc)?'tourist':/restaurant|fast_food|cafe|bar|pub|food_court|ice_cream|bakery/.test(c+' '+sc)?'food':null;
+        if(kind){const xy=toXY(po,q);if(hyp(xy[0],xy[1])<=r)pois.push({x:xy[0],y:xy[1],name:f.props.name,kind});}}}
+    const ways=nodeWays(lines,nsegs);
+    if(ways.length<5)throw new Error('almost no roads');
+    const share=connectedShare(ways);if(share<.5)throw new Error('roads came out fragmented ('+Math.round(share*100)+'% connected)');
+    const seen=new Set();this._ofmPois=pois.filter(q=>!seen.has(q.name)&&seen.add(q.name));
+    return ways;},
+  async fetchWays(lat,lon,rr,net,types){                 // OpenFreeMap tiles and the Overpass servers race. First valid answer wins.
+    const all=new AbortController(),errs=[];this._ofmPois=null;
+    const q='[out:json][timeout:30];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';
+    const srcs=[['openfreemap',()=>this.ofmWays(lat,lon,rr,net,all.signal)],['overpass',async()=>this.compact(await this.overpass(q,all.signal))]];
+    const tries=srcs.map(([name,fn])=>fn().then(w=>{if(!w||w.length<5)throw new Error('almost no roads');this.source=name;return w;})
+      .catch(e=>{if(!all.signal.aborted)errs.push(name+': '+e.message);throw e;}));
+    try{const w=await Promise.any(tries);all.abort();return w;}
+    catch(e){throw new Error(errs.join(' | '));}},
   async load(lat,lon,r,net,allowSynth){
     net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
     const types='trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'');
@@ -322,7 +430,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     for(const rr of[r,Math.round(r*.6),Math.round(r*.35)]){                    // each retry covers a smaller area
       if(got||Date.now()>deadline)break;usedR=rr;
       try{const key=GCache.key(lat,lon,rr,net.paths);let ways=await GCache.get(key);fromCache=!!ways;
-        if(!ways){const q='[out:json][timeout:30];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';ways=this.compact(await this.overpass(q));}
+        if(!ways)ways=await this.fetchWays(lat,lon,rr,net,types);
         this.reset();Geo.set(lat,lon);this.build(ways);
         if(this.segs.length<20)throw new Error('almost no roads returned here');
         if(!fromCache)GCache.put(key,ways);
@@ -332,7 +440,10 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     else if(allowSynth){this.reset();Geo.set(lat,lon);this.synth(r);this.synthetic=true;UI.toast('Street data unavailable, using a practice grid. ('+err+')',6000);}
     else{this.reset();Geo.set(lat,lon);this.failed=err||'unknown error';console.warn('Street data failed:',this.failed);}
     this.finish(r);
-    if(got&&(G.cfg.poi||'street')!=='street')await this.loadPOIs(lat,lon,r);
+    if(got&&(G.cfg.poi||'street')!=='street'){
+      if(this._ofmPois&&this._ofmPois.length&&!fromCache)this.pois=this._ofmPois;                // landmarks came with the tiles
+      else await this.loadPOIs(lat,lon,r);}
+    if(got)console.info('Street data source:',fromCache?'local cache':this.source);
   },
   async loadPOIs(lat,lon,r){
     this.pois=[];
@@ -340,7 +451,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
       kinds.forEach((k,i)=>{const n=this.junc[(i*37+11)%this.junc.length];this.pois.push({x:n.x+25,y:n.y+20,name:nm[i],kind:k});});return;}
     try{const a='(around:'+r+','+lat+','+lon+')';
       const q='[out:json][timeout:25];(nwr["tourism"~"^(attraction|museum|gallery|viewpoint|zoo|theme_park|artwork)$"]["name"]'+a+';nwr["historic"]["name"]'+a+';nwr["leisure"~"^(park|stadium)$"]["name"]'+a+';nwr["amenity"~"^(restaurant|fast_food|cafe|pub|bar|cinema|theatre|marketplace)$"]["name"]'+a+';nwr["shop"~"^(mall|supermarket)$"]["name"]'+a+';);out center 500;';
-      const js=await this.overpass(q),seen=new Set();
+      const js=await this.overpass(q,null,12000),seen=new Set();
       for(const e of js.elements||[]){const t=e.tags||{},c=e.center||e;if(c.lat==null||!t.name||seen.has(t.name))continue;seen.add(t.name);
         const kind=(t.tourism||t.historic||/^(park|stadium)$/.test(t.leisure||''))?'tourist':/^(restaurant|fast_food|cafe|pub|bar)$/.test(t.amenity||'')?'food':'other';
         const[x,y]=Geo.xy(c.lat,c.lon);this.pois.push({x,y,name:t.name,kind});}
@@ -1252,7 +1363,7 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
   init(){if(this.map)return;
     this.map=L.map('map',{zoomControl:false,attributionControl:true}).setView([DEMO.lat,DEMO.lon],16);
     this.map.createPane('riders').style.zIndex=450;this.map.createPane('me').style.zIndex=650;
-    this.tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(this.map);
+    this.tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO | road data: OpenFreeMap / Overpass'}).addTo(this.map);
     this.canvas=L.canvas({padding:.5});this.graphL=L.layerGroup().addTo(this.map);this.hintL=L.layerGroup().addTo(this.map);
     this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
     setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();},500);},
