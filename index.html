@@ -41,10 +41,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bagel+Fat+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-:root{--asphalt:#26282c;--asphalt2:#31343a;--chalk:#f3efe4;--dim:#b4b0a5;--yellow:#f5c842;--pink:#f48fb1;--sky:#7cc4f5;--grass:#9be564;--red:#ff6b5a;--orange:#ff9f43;--rough:16px 22px 14px 24px/22px 1}
+:root{--asphalt:#26282c;--asphalt2:#31343a;--chalk:#f3efe4;--dim:#b4b0a5;--yellow:#f5c842;--pink:#f48fb1;--sky:#7cc4f5;--grass:#9be564;--red:#ff6b5a;--orange:#ff9f43;--rough:16px 22px 14px 24px/22px 14px 24px 16px}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%;color:var(--chalk);font:16px/1.4 'Atkinson Hyperlegible',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
-body{background:radial-gradient(circle at 20% 10%,#ffffff0d 0 2px,transparent 3px) 0 0/38px 38px,radial-gradient(circle at 70% 60%,#ffffff08 0 1.5px,transparent 2px) 0 0/27px 27px,var(--asphalt);overflow:hidden}
+body{background:radial-gradient(circle at 20% 10%,#ffffff0d 0 2px,transparent 3px) 0 0/38px 38px,radial-gradient(circle at 70% 60%,#ffffff08 0 1.5px,transparent 2px) 0 0/27px 27px,var(--asphalt);overscroll-behavior:none}
 [hidden]{display:none!important}
 .disp{font-family:'Bagel Fat One','Arial Rounded MT Bold',system-ui,sans-serif;font-weight:400}
 button,input,select{font:inherit;color:inherit}
@@ -72,10 +72,10 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 .roster li{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:2px dashed #ffffff30}
 .badge{font-size:12px;padding:2px 8px;border-radius:99px;border:2px solid var(--dim);color:var(--dim)}.badge.hi{border-color:var(--orange);color:var(--orange)}.badge.lo{border-color:var(--sky);color:var(--sky)}
 .hop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.hop button{aspect-ratio:1;border:3px solid #0004;border-radius:10px;padding:6px;font:400 15px/1.1 'Bagel Fat One',system-ui;color:#1c1c1c;position:relative;box-shadow:3px 3px 0 #0006;display:flex;align-items:end;justify-content:flex-start}
+.hop button{aspect-ratio:1;border:3px solid #0004;border-radius:10px;padding:6px;font:400 15px/1.1 'Bagel Fat One',system-ui;color:#1c1c1c;position:relative;box-shadow:3px 3px 0 #0006;display:flex;align-items:center;justify-content:center;text-align:center}
 .hop button:nth-child(1){background:var(--yellow)}.hop button:nth-child(2){background:var(--pink)}.hop button:nth-child(3){background:var(--sky)}
 .hop button:nth-child(4){background:var(--grass)}.hop button:nth-child(5){background:var(--orange)}.hop button:nth-child(6){background:#c3a6ff}
-.hop button:nth-child(10){background:#e2e8f0}.hop button:nth-child(11){background:#fde68a}.hop button:nth-child(12){background:#a7f3d0}.hop button:nth-child(7){background:#5eead4}.hop button:nth-child(8){background:#fca5a5}.hop button:nth-child(9){background:#c4b5fd}
+.hop button:nth-child(10){background:#e2e8f0}.hop button:nth-child(11){background:#fde68a}.hop button:nth-child(12){background:#a7f3d0}.hop button:nth-child(7){background:#5eead4}.hop button:nth-child(8){background:#ffd6a5}.hop button:nth-child(9){background:#ff9aa2}
 .hop button[aria-pressed=true]{outline:4px solid var(--chalk);outline-offset:2px;transform:rotate(-2deg) scale(1.04)}
 .hop button[aria-pressed=true]::after{content:'';position:absolute;right:6px;bottom:6px;width:16px;height:16px;border-radius:50%;background:#26282c;box-shadow:inset -3px -3px 0 #0008}
 .hop button:disabled{opacity:1}
@@ -108,7 +108,7 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 #overlay ol{text-align:left;max-width:34ch;color:var(--chalk)}
 #picker{position:fixed;inset:0;z-index:2500;background:var(--asphalt);display:flex;flex-direction:column;padding:max(12px,env(safe-area-inset-top)) 12px 12px;gap:8px}
 #pmap{flex:1;min-height:200px;border:3px solid var(--chalk);border-radius:var(--rough)}
-#pres{list-style:none;padding:0;max-height:28vh;overflow:auto;display:grid;gap:4px}#pres li button{width:100%;text-align:left;padding:8px 10px;background:var(--asphalt2);border:2px dashed var(--dim);border-radius:12px;color:var(--chalk)}
+#pres{list-style:none;padding:0;max-height:28vh;overflow:auto;display:grid;gap:4px}#pres li button{width:100%;text-align:left;padding:8px 10px;background:var(--asphalt2);border:2px dashed var(--dim);border-radius:10px;color:var(--chalk)}
 #toast{position:fixed;z-index:3000;left:50%;bottom:90px;transform:translateX(-50%);background:var(--chalk);color:#1c1c1c;padding:10px 16px;border-radius:14px;max-width:90vw;display:none;font-weight:700}
 .rider{position:relative;transform:translate(-50%,-50%);width:0;height:0}
 .rider i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:var(--c);border:3px solid #fff;box-shadow:0 0 0 2px #0008,0 0 14px var(--c)}
@@ -175,11 +175,11 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
       <label class="f">Practice bots<select id="selBots"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
     </div>
     <label class="f" id="roundsWrap">Rounds<select id="selRounds"><option>2</option><option>3</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label>
-    <label class="f">Time limit<select id="selTime"><option value="default">Mode default</option><option value="0">No limit</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select></label>
+    <label class="f">Time limit<select id="selTime"><option value="default">Mode default</option><option value="0">No limit</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select></label>
     <label class="f">Arena centre<select id="selCenter"><option value="gps">My location</option><option value="demo">Demo streets (no GPS)</option></select></label>
     <div id="destBox">
-      <label class="f">Destination style<select id="selPoi"><option value="street">Street intersections</option><option value="tourist">Tourist spots and landmarks</option><option value="food">Food and cafés</option></select></label>
-      <div id="fixedDest" class="row" style="align-items:center;margin-bottom:12px"><button class="btn alt" id="btnDest" style="flex:0 0 auto;padding:10px 12px;min-height:44px;font-size:16px">Set fixed destination</button></div>
+      <label class="f">Destination style<select id="selPoi"><option value="street">Street intersections</option><option value="tourist">Tourist spots and landmarks</option><option value="food">Food and drink (e.g. McDonald's)</option><option value="any">Any named place</option></select></label>
+      <div id="fixedDest" class="row" style="align-items:center;margin-bottom:12px"><button class="btn alt" id="btnDest" style="flex:0 0 auto;padding:10px 12px;min-height:44px;font-size:16px">Set fixed destination</button><span id="destLbl" style="color:var(--dim)"></span><button class="btn ghost" id="btnClrDest" style="flex:0 0 auto;padding:8px 12px;min-height:40px;font-size:15px" hidden>Clear</button></div>
     </div>
     <label class="f">Voice chat<select id="selChat"><option value="off">Off</option><option value="prox">Proximity: louder when closer</option><option value="always">Always on, full volume</option></select></label>
     <label class="f" id="chatRWrap">Proximity range<select id="selChatR"><option value="200">200 m</option><option value="400">400 m</option><option value="800">800 m</option></select></label>
@@ -204,9 +204,9 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <div class="row"><label style="flex:0 0 auto">Speed <b id="simVal">0</b> km/h</label><input id="simSpd" type="range" min="0" max="120" value="0" aria-label="Simulated speed"></div>
     <label class="chk"><input id="simReveal" type="checkbox"> Reveal hidden caches (practice only)</label>
     <div id="simInfo" style="color:var(--dim);font-size:14px;margin-top:6px">Roads are drawn on the map. Pick a turn for the next junction.</div>
-    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="simL">Left</button><button class="btn ghost" id="simS">Straight</button><button class="btn ghost" id="simR">Right</button></div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="simL">Left</button><button class="btn ghost" id="simS">Straight</button><button class="btn ghost" id="simR">Right</button><button class="btn ghost" id="simU">U-turn</button><button class="btn pink" id="simGo">Launch</button></div>
   </div>
-  <div id="dock"><span id="acts" style="display:contents"></span><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnMenu">Menu</button></div>
+  <div id="dock"><span id="acts" style="display:contents"></span><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnSim" hidden>Sim</button><button class="btn ghost" id="btnLeave">Leave</button></div>
 </section>
 
 <div id="picker" hidden>
@@ -221,7 +221,7 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-(() => {'use strict';
+(()=>{'use strict';
 
 /* ================= CONFIG ================= */
 const CFG={
@@ -231,7 +231,7 @@ const CFG={
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
   cartoKey:'',           // free CARTO basemap key (https://carto.com/basemaps/apikey/). Also accepted as ?carto=KEY, and remembered on that phone.
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
-  overpassUrl:'https://whasking.hamburgeer-com.workers.dev/overpass',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
+  overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
   turnUrl:'https://whasking.hamburgeer-com.workers.dev/turn',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
   boomAccel:3.5,boomMs:7000,
   trailMs:120000,trailGraceMs:3000,
@@ -241,101 +241,6 @@ CFG.maxRadius=Math.ceil((CFG.maxKmh-CFG.stealthKmh)/CFG.stepKmh)*CFG.stepMeters;
 if(typeof location!=='undefined'){const q=new URLSearchParams(location.search);   // share links like  ?relay=wss://your-worker.workers.dev&turn=https://your-worker.workers.dev/turn
   if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');if(q.get('overpass'))CFG.overpassUrl=q.get('overpass');
   if(q.get('carto')){try{localStorage.setItem('tarmac.carto',q.get('carto'));}catch(e){}CFG.cartoKey=q.get('carto');}}
-
-// FRONTEND FIX: normalize websocket URLs before creating a socket. The worker exposes a websocket on / with ?room=..., not on an https URL directly.
-const normalizeWsUrl=(raw)=>{
-  if(!raw) return raw;
-  const value=String(raw).trim();
-  if(!value) return value;
-  if(/^wss?:\/\//i.test(value)) return value.replace(/^http:/i,'ws:').replace(/^https:/i,'wss:');
-  return value.replace(/^https?:\/\//i,m=>m.replace(/^http/i,'ws'));
-};
-if(CFG.transport==='websocket') CFG.wsUrl = normalizeWsUrl(CFG.wsUrl);
-
-// Minimal lobby join/create wiring: fixes the broken frontend flow when the UI buttons exist but aren't actually connected.
-const TARMAC_JOIN_FIX = (() => {
-  const el=(sel)=>document.querySelector(sel);
-  const safeToast=(msg)=>{
-    const toast=el('#toast');
-    if(toast){toast.textContent=msg;toast.style.display='block';clearTimeout(toast._timer);toast._timer=setTimeout(()=>toast.style.display='none',2200);}
-    else if(typeof window !== 'undefined'){console.log('[tarmac]',msg);}
-  };
-  const roomCodeText=(v)=>String(v||'').replace(/\D/g,'').slice(0,4);
-  const getName=()=>{
-    const input=el('#inName');
-    const value=(input&&input.value||'').trim();
-    return value || 'Rider';
-  };
-  const getBike=()=>{
-    const ids=['bikeLow','bikeHigh','bikeFoot','bikeOpen'];
-    for(const id of ids){
-      const btn=el('#'+id);
-      if(btn && btn.getAttribute('aria-pressed')==='true') return id.replace('bike','').toLowerCase();
-    }
-    return 'low';
-  };
-  const buildRoomUrl=(room)=>{
-    const base=normalizeWsUrl(CFG.wsUrl || (location && location.origin) || 'ws://localhost:8787');
-    const sep = base.includes('?') ? '&' : '?';
-    return `${base}${sep}room=${encodeURIComponent(room)}`;
-  };
-  const maybeExistingSocket=()=>window.__TARMAC_ROOM_SOCKET__ || null;
-  const connectRoom=(room, isHost=false)=>{
-    const code=roomCodeText(room);
-    if(!code || code.length !== 4){ safeToast('Enter a 4-digit room code'); return null; }
-    if(window.__TARMAC_ROOM_SOCKET__ && window.__TARMAC_ROOM_SOCKET__.readyState === WebSocket.OPEN){
-      if(window.__TARMAC_ROOM_SOCKET__._roomCode !== code){
-        try{window.__TARMAC_ROOM_SOCKET__.close();}catch(e){}
-      } else { return window.__TARMAC_ROOM_SOCKET__; }
-    }
-    const socket = new WebSocket(buildRoomUrl(code));
-    socket._roomCode = code;
-    socket._isHost = !!isHost;
-    socket.onopen = () => {
-      const payload = {type:'hello', room:code, name:getName(), bike:getBike(), host:isHost};
-      try { socket.send(JSON.stringify(payload)); } catch (e) {}
-      const roomField = el('#roomCode');
-      if(roomField) roomField.textContent = code;
-      safeToast(isHost ? 'Room created' : 'Joined room');
-      if (document.getElementById('scrLobby')) document.getElementById('scrLobby').hidden = true;
-      const roomScreen=document.getElementById('scrRoom'); if(roomScreen) roomScreen.hidden = false;
-    };
-    socket.onerror = () => {
-      safeToast('Room connection failed');
-    };
-    socket.onclose = () => {
-      safeToast('Room disconnected');
-      if(window.__TARMAC_ROOM_SOCKET__===socket) delete window.__TARMAC_ROOM_SOCKET__;
-    };
-    window.__TARMAC_ROOM_SOCKET__ = socket;
-    return socket;
-  };
-  const onLobbyReady=()=>{
-    const createBtn=el('#btnCreate');
-    const joinBtn=el('#btnJoin');
-    const input=el('#inCode');
-    if(!createBtn || !joinBtn || !input) return;
-
-    createBtn.addEventListener('click', () => {
-      const generated = String(Math.floor(1000 + Math.random() * 9000));
-      input.value = generated;
-      connectRoom(generated, true);
-    });
-
-    joinBtn.addEventListener('click', () => {
-      connectRoom(input.value, false);
-    });
-
-    input.addEventListener('keydown', (event) => {
-      if(event.key === 'Enter') joinBtn.click();
-    });
-  };
-
-  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', onLobbyReady, {once:true}); }
-  else { onLobbyReady(); }
-  return { connectRoom, normalizeWsUrl: normalizeWsUrl };
-})();
-
 const PROFILE={ // per-class speed bands (km/h). road = your original spec.
   road:{stealth:40,step:5,stepM:30,flare:70,blind:80,max:120,boom:3.5,minBoom:8,snap:'road'},
   foot:{stealth:12,step:3,stepM:30,flare:30,blind:36,max:45,boom:2.2,minBoom:3,snap:'all'},
@@ -366,7 +271,7 @@ const bearingXY=(dx,dy)=>(Math.atan2(dx,dy)/D2R+360)%360;
 const angDiff=(a,b)=>((a-b+540)%360)-180;
 const cardinal=d=>['North','North-East','East','South-East','South','South-West','West','North-West'][Math.round(((d%360)+360)%360/45)%8];
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
-const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const mmss=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 function segDist(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=clamp(t,0,1);const x=ax+t*dx,y=ay+t*dy;return{d:hyp(px-x,py-y),x,y,t};}
 const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
@@ -378,7 +283,7 @@ const Geo={lat0:0,lon0:0,kx:1,ky:1,
   ll(x,y){return[this.lat0+y/this.ky,this.lon0+x/this.kx];}};
 Geo.set(DEMO.lat,DEMO.lon);
 
-/* ===== OpenFreeMap vector tiles ... */
+/* ===== OpenFreeMap vector tiles: an independent road + POI source (OpenMapTiles schema, built from OpenStreetMap) ===== */
 const MVT={
   async tile(url,signal){const res=await fetch(url,{signal});if(!res.ok)throw new Error('tile HTTP '+res.status);let buf=await res.arrayBuffer();const u=new Uint8Array(buf);
     if(u[0]===0x1f&&u[1]===0x8b&&typeof DecompressionStream!=='undefined')buf=await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
@@ -418,9 +323,1272 @@ const MVT={
       if(f===3&&w===2){const n=varint(),e=pos+n,L=readLayer(e);pos=e;layers[L.name]=L;}else skip(w);}
     return layers;}};
 const tileLL=(z,tx,ty,px,py,ext)=>{const n=Math.pow(2,z),X=(tx+px/ext)/n,Y=(ty+py/ext)/n;return[Math.atan(Math.sinh(Math.PI*(1-2*Y)))/D2R,X*360-180];};
-function nodeWays(lines,nsegs){const CELL=40,grid=new Map(),segs=[];const put=(g,s)=>{const x0=Math.floor(Math.min(s.ax,s.bx)/CELL),x1=Math.floor(Math.max(s.ax,s.bx)/CELL),y0=Math.floor(Math.min(s.ay,s.by)/CELL),y1=Math.floor(Math.max(s.ay,s.by)/CELL);for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(g.get(k)||g.set(k,[]).get(k)).push(s);}};lines.forEach((L,li)=>{for(let i=1;i<L.pts.length;i++){const s={li,i,ax:L.pts[i-1][0],ay:L.pts[i-1][1],bx:L.pts[i][0],by:L.pts[i][1]};segs.push(s);put(grid,s);}});const ins=new Map();lines.forEach((L,li)=>{if(L.pts.length<2)return;for(const e of[L.pts[0],L.pts[L.pts.length-1]]){const cx=Math.floor(e[0]/CELL),cy=Math.floor(e[1]/CELL);let best=null;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=grid.get((cx+dx)+','+(cy+dy));if(!l)continue;for(const s of l){if(s.li===li)continue;const r=segDist(e[0],e[1],s.ax,s.ay,s.bx,s.by);if(r.d<3&&(!best||r.d<best.d)&&hyp(e[0]-s.ax,e[1]-s.ay)>2.5&&hyp(e[0]-s.bx,e[1]-s.by)>2.5)best={d:r.d,s,t:r.t};}}if(best){const k=best.s.li+'|'+best.s.i;(ins.get(k)||ins.set(k,[]).get(k)).push({t:best.t,x:e[0],y:e[1]});}}});lines.forEach((L,li)=>{const np=[];for(let k=0;k<L.pts.length;k++){np.push(L.pts[k]);if(k<L.pts.length-1){const a=ins.get(li+'|'+(k+1));if(a){a.sort((u,v)=>u.t-v.t);for(const q of a)np.push([q.x,q.y])}}}L.pts=np;});const ng=new Map();for(const s of nsegs)put(ng,s);const nameAt=(mx,my)=>{const cx=Math.floor(mx/CELL),cy=Math.floor(my/CELL);let best=null;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=ng.get((cx+dx)+','+(cy+dy));if(!l)continue;for(const s of l){const d=segDist(mx,my,s.ax,s.ay,s.bx,s.by).d;if(d<9&&(!best||d<best.d))best={d,n:s.n};}}return best?best.n:'unnamed road';};const NC=3,nodes=new Map();let nid=0;const nodeAt=(x,y)=>{const cx=Math.floor(x/NC),cy=Math.floor(y/NC);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=nodes.get((cx+dx)+','+(cy+dy));if(l)for(const n of l)if(hyp(n.x-x,n.y-y)<2.5)return n;}const n={id:'v'+(nid++),x,y};const k=cx+','+cy;(nodes.get(k)||nodes.set(k,[]).get(k)).push(n);return n;};const ways=[];for(const L of lines){let run=null,runName=null;for(let i=1;i<L.pts.length;i++){const a=nodeAt(L.pts[i-1][0],L.pts[i-1][1]),b=nodeAt(L.pts[i][0],L.pts[i][1]);if(a===b)continue;const nm=nameAt((a.x+b.x)/2,(a.y+b.y)/2);if(!run||nm!==runName){run={n:nm,p:L.p?1:0,g:[]};runName=nm;ways.push(run);run.g.push(a);}run.g.push(b);}}return ways.map(w=>({n:w.n,p:w.p,g:w.g.map(n=>{const ll=Geo.ll(n.x,n.y);return[n.id,ll[0],ll[1]];})}));}
-function connectedShare(ways){const par=new Map(),find=a=>{while(par.get(a)!==a){par.set(a,par.get(par.get(a)));a=par.get(a);}return a;};for(const w of ways)for(const q of w.g)if(!par.has(q[0]))par.set(q[0],q[0]);for(const w of ways)for(let i=1;i<w.g.length;i++){const a=find(w.g[i-1][0]),b=find(w.g[i][0]);if(a!==b)par.set(a,b);}const cnt=new Map();for(const k of par.keys()){const r=find(k);cnt.set(r,(cnt.get(r)||0)+1);}return par.size?Math.max(...cnt.values())/par.size:0;}
+function nodeWays(lines,nsegs){            // lines: [{p,pts:[[x,y]]}] in metres. Returns ways with shared node ids and one street name each
+  const CELL=40,grid=new Map(),segs=[];
+  const put=(g,s)=>{const x0=Math.floor(Math.min(s.ax,s.bx)/CELL),x1=Math.floor(Math.max(s.ax,s.bx)/CELL),y0=Math.floor(Math.min(s.ay,s.by)/CELL),y1=Math.floor(Math.max(s.ay,s.by)/CELL);
+    for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(g.get(k)||g.set(k,[]).get(k)).push(s);}};
+  lines.forEach((L,li)=>{for(let i=1;i<L.pts.length;i++){const s={li,i,ax:L.pts[i-1][0],ay:L.pts[i-1][1],bx:L.pts[i][0],by:L.pts[i][1]};segs.push(s);put(grid,s);}});
+  const ins=new Map();   // T-junctions: a road that ends on another road's segment gets a vertex inserted there, so they connect
+  lines.forEach((L,li)=>{if(L.pts.length<2)return;for(const e of[L.pts[0],L.pts[L.pts.length-1]]){const cx=Math.floor(e[0]/CELL),cy=Math.floor(e[1]/CELL);let best=null;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=grid.get((cx+dx)+','+(cy+dy));if(!l)continue;
+      for(const s of l){if(s.li===li)continue;const r=segDist(e[0],e[1],s.ax,s.ay,s.bx,s.by);
+        if(r.d<3&&(!best||r.d<best.d)&&hyp(e[0]-s.ax,e[1]-s.ay)>2.5&&hyp(e[0]-s.bx,e[1]-s.by)>2.5)best={d:r.d,s,t:r.t};}}
+    if(best){const k=best.s.li+'|'+best.s.i;(ins.get(k)||ins.set(k,[]).get(k)).push({t:best.t,x:e[0],y:e[1]});}}});
+  lines.forEach((L,li)=>{const np=[];for(let k=0;k<L.pts.length;k++){np.push(L.pts[k]);if(k<L.pts.length-1){const a=ins.get(li+'|'+(k+1));if(a){a.sort((u,v)=>u.t-v.t);for(const q of a)np.push([q.x,q.y]);}}}L.pts=np;});
+  const ng=new Map();for(const s of nsegs)put(ng,s);
+  const nameAt=(mx,my)=>{const cx=Math.floor(mx/CELL),cy=Math.floor(my/CELL);let best=null;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=ng.get((cx+dx)+','+(cy+dy));if(!l)continue;for(const s of l){const d=segDist(mx,my,s.ax,s.ay,s.bx,s.by).d;if(d<9&&(!best||d<best.d))best={d,n:s.n};}}
+    return best?best.n:'unnamed road';};
+  const NC=3,nodes=new Map();let nid=0;
+  const nodeAt=(x,y)=>{const cx=Math.floor(x/NC),cy=Math.floor(y/NC);
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=nodes.get((cx+dx)+','+(cy+dy));if(l)for(const n of l)if(hyp(n.x-x,n.y-y)<2.5)return n;}
+    const n={id:'v'+(nid++),x,y};const k=cx+','+cy;(nodes.get(k)||nodes.set(k,[]).get(k)).push(n);return n;};
+  const ways=[];
+  for(const L of lines){let run=null,runName=null;
+    for(let i=1;i<L.pts.length;i++){const a=nodeAt(L.pts[i-1][0],L.pts[i-1][1]),b=nodeAt(L.pts[i][0],L.pts[i][1]);if(a===b)continue;
+      const nm=nameAt((a.x+b.x)/2,(a.y+b.y)/2);
+      if(!run||nm!==runName){run={n:nm,p:L.p?1:0,g:[]};runName=nm;ways.push(run);run.g.push(a);}
+      run.g.push(b);}}
+  return ways.map(w=>({n:w.n,p:w.p,g:w.g.map(n=>{const ll=Geo.ll(n.x,n.y);return[n.id,ll[0],ll[1]];})}));}
+function connectedShare(ways){const par=new Map(),find=a=>{while(par.get(a)!==a){par.set(a,par.get(par.get(a)));a=par.get(a);}return a;};
+  for(const w of ways)for(const q of w.g)if(!par.has(q[0]))par.set(q[0],q[0]);
+  for(const w of ways)for(let i=1;i<w.g.length;i++){const a=find(w.g[i-1][0]),b=find(w.g[i][0]);if(a!==b)par.set(a,b);}
+  const cnt=new Map();for(const k of par.keys()){const r=find(k);cnt.set(r,(cnt.get(r)||0)+1);}
+  return par.size?Math.max(...cnt.values())/par.size:0;}
+/* ===== local road cache: IndexedDB with an in-memory fallback, so a place you have played in loads with no network ===== */
+const GCache={db:null,mem:new Map(),ttl:14*864e5,
+  key(lat,lon,r,paths){const q=v=>(Math.round(v/.002)*.002).toFixed(3);return q(lat)+','+q(lon)+','+r+','+(paths?1:0);},
+  open(){if(this.db||typeof indexedDB==='undefined')return Promise.resolve(this.db);
+    return new Promise(res=>{try{const rq=indexedDB.open('tarmac-tag',1);rq.onupgradeneeded=()=>rq.result.createObjectStore('roads');rq.onsuccess=()=>{this.db=rq.result;res(this.db);};rq.onerror=()=>res(null);rq.onblocked=()=>res(null);}catch(e){res(null);}});},
+  async get(k){const m=this.mem.get(k);if(m&&Date.now()-m.t<this.ttl)return m.ways;
+    const db=await this.open();if(!db)return null;
+    return new Promise(res=>{try{const rq=db.transaction('roads').objectStore('roads').get(k);rq.onsuccess=()=>{const v=rq.result;if(v&&Date.now()-v.t<this.ttl){this.mem.set(k,v);res(v.ways);}else res(null);};rq.onerror=()=>res(null);}catch(e){res(null);}});},
+  async put(k,ways){const v={t:Date.now(),ways};this.mem.set(k,v);const db=await this.open();if(!db)return;try{db.transaction('roads','readwrite').objectStore('roads').put(v,k);}catch(e){}}};
+const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
+  pois:[],roadJ:true,
+  reset(){this.ready=false;this.nodes=new Map();this.segs=[];this.grid=new Map();this.junc=[];this.pois=[];},
+  addNode(id,x,y){let n=this.nodes.get(id);if(!n){n={id,x,y,adj:[],names:new Set()};this.nodes.set(id,n);}return n;},
+  addEdge(a,b,name,pth){if(a===b)return;const A=this.nodes.get(a),B=this.nodes.get(b);if(!A||!B)return;pth=!!pth;
+    const ex=A.adj.find(e=>e.to===b);
+    if(!ex){const w=hyp(A.x-B.x,A.y-B.y);A.adj.push({to:b,name,w,p:pth});B.adj.push({to:a,name,w,p:pth});}
+    else if(ex.p&&!pth){ex.p=false;const bx=B.adj.find(e=>e.to===a);if(bx)bx.p=false;}
+    A.names.add(name);B.names.add(name);this.segs.push({a,b,name,p:pth});},
+  edgesFor(n,ap){const l=ap?n.adj:n.adj.filter(e=>!e.p);return l.length?l:n.adj;},
+  compact(js){const out=[];for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry||!w.nodes)continue;
+      out.push({n:(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road',p:/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'')?1:0,g:w.nodes.map((id,i)=>[id,w.geometry[i]?w.geometry[i].lat:null,w.geometry[i]?w.geometry[i].lon:null])});}
+    return out;},
+  build(ways){for(const w of ways){for(const q of w.g){if(q[1]==null)continue;const xy=Geo.xy(q[1],q[2]);this.addNode(q[0],xy[0],xy[1]);}
+      for(let i=1;i<w.g.length;i++)this.addEdge(w.g[i-1][0],w.g[i][0],w.n,!!w.p);}},
+  async overpass(q,parent,msDirect){                    // ask every server at once and take the first good answer
+    const base=CFG.overpassUrl||(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,'')+'/overpass':'');
+    const hosts=[];if(base)hosts.push([base,45000]);
+    for(const h of['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://lz4.overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'])hosts.push([h,msDirect||30000]);
+    const errs=[],ctrls=[];
+    const tries=hosts.map(([h,ms])=>(async()=>{const name=h.split('/')[2],ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),ms);ctrls.push(ctl);if(parent)parent.addEventListener('abort',()=>ctl.abort());
+      try{const res=await fetch(h,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(q),signal:ctl.signal});
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const js=await res.json();if(js.error)throw new Error(js.error);if(js.remark&&/error|timed out|out of memory/i.test(js.remark))throw new Error('server busy');
+        return js;}
+      catch(e){errs.push(name+': '+((e.name==='AbortError'||e.name==='TimeoutError')?'no answer in '+ms/1000+' s':e.message));throw e;}
+      finally{clearTimeout(to);}})());
+    try{const js=await Promise.any(tries);ctrls.forEach(c=>c.abort());return js;}
+    catch(e){throw new Error(errs.join('; '));}},
+  async ofmWays(lat,lon,r,net,signal){
+    let tj=this._tj&&Date.now()-this._tj.t<36e5?this._tj.j:null;
+    if(!tj){const rs=await fetch('https://tiles.openfreemap.org/planet',{signal});if(!rs.ok)throw new Error('tilejson HTTP '+rs.status);tj=await rs.json();this._tj={t:Date.now(),j:tj};}
+    const tpl=tj.tiles&&tj.tiles[0];if(!tpl)throw new Error('no tile url');
+    const z=Math.min(tj.maxzoom||14,14),n=Math.pow(2,z),dLat=r/110540,dLon=r/(111320*Math.cos(lat*D2R));
+    const TX=l=>Math.floor((l+180)/360*n),TY=a=>{const sn=Math.sin(a*D2R);return Math.floor((.5-Math.log((1+sn)/(1-sn))/(4*Math.PI))*n);};
+    const x0=TX(lon-dLon),x1=TX(lon+dLon),y0=TY(lat+dLat),y1=TY(lat-dLat);
+    if((x1-x0+1)*(y1-y0+1)>36)throw new Error('area too large for tiles');
+    const jobs=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)jobs.push(MVT.tile(tpl.replace('{z}',z).replace('{x}',x).replace('{y}',y),signal).then(t=>({t,x,y})));
+    const tiles=await Promise.all(jobs),roadC=['trunk','primary','secondary','tertiary','minor'],pathC=['path','track','service'];
+    const lines=[],nsegs=[],pois=[];
+    for(const{t,x,y}of tiles){const tr=t.transportation,nm=t.transportation_name,po=t.poi;
+      const toXY=(L,q)=>{const ll=tileLL(z,x,y,q[0],q[1],L.ext);return Geo.xy(ll[0],ll[1]);};
+      const inside=(L,a,b)=>{const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;return mx>=0&&mx<L.ext&&my>=0&&my<L.ext;};   // buffer overlap: each segment is kept by the tile that holds its midpoint
+      if(tr)for(const f of tr.feats){if(f.type!==2)continue;const c=f.props['class'],isP=pathC.includes(c);if(!(roadC.includes(c)||(net.paths&&isP)))continue;
+        for(const ln of f.geom){let piece=null;for(let i=1;i<ln.length;i++){if(inside(tr,ln[i-1],ln[i])){if(!piece){piece={p:isP,pts:[toXY(tr,ln[i-1])]};lines.push(piece);}piece.pts.push(toXY(tr,ln[i]));}else piece=null;}}}
+      if(nm)for(const f of nm.feats){if(f.type!==2)continue;const name=f.props.name||f.props['name:latin']||f.props.name_en||f.props.ref;if(!name)continue;
+        for(const ln of f.geom)for(let i=1;i<ln.length;i++){const a=toXY(nm,ln[i-1]),b=toXY(nm,ln[i]);nsegs.push({ax:a[0],ay:a[1],bx:b[0],by:b[1],n:name});}}
+      if(po)for(const f of po.feats){if(f.type!==1||!f.props.name)continue;const q=f.geom[0][0];if(q[0]<0||q[0]>=po.ext||q[1]<0||q[1]>=po.ext)continue;
+        const c=f.props['class']||'',sc=f.props.subclass||'',kind=/attraction|museum|gallery|zoo|castle|monument|viewpoint|artwork|stadium|park|theatre|cinema|landmark|memorial|ruins/.test(c+' '+sc)?'tourist':/restaurant|fast_food|cafe|bar|pub|food_court|ice_cream|bakery/.test(c+' '+sc)?'food':null;
+        if(kind){const xy=toXY(po,q);if(hyp(xy[0],xy[1])<=r)pois.push({x:xy[0],y:xy[1],name:f.props.name,kind});}}}
+    const ways=nodeWays(lines,nsegs);
+    if(ways.length<5)throw new Error('almost no roads');
+    const share=connectedShare(ways);if(share<.5)throw new Error('roads came out fragmented ('+Math.round(share*100)+'% connected)');
+    const seen=new Set();this._ofmPois=pois.filter(q=>!seen.has(q.name)&&seen.add(q.name));
+    return ways;},
+  async fetchWays(lat,lon,rr,net,types){                 // OpenFreeMap tiles and the Overpass servers race. First valid answer wins.
+    const all=new AbortController(),errs=[];this._ofmPois=null;
+    const q='[out:json][timeout:30];way["highway"~"^('+types+')$"](around:'+rr+','+lat+','+lon+');out geom qt;';
+    const srcs=[['openfreemap',()=>this.ofmWays(lat,lon,rr,net,all.signal)],['overpass',async()=>this.compact(await this.overpass(q,all.signal))]];
+    const tries=srcs.map(([name,fn])=>fn().then(w=>{if(!w||w.length<5)throw new Error('almost no roads');this.source=name;return w;})
+      .catch(e=>{if(!all.signal.aborted)errs.push(name+': '+e.message);throw e;}));
+    try{const w=await Promise.any(tries);all.abort();return w;}
+    catch(e){throw new Error(errs.join(' | '));}},
+  async load(lat,lon,r,net,allowSynth){
+    net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
+    const types='trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'');
+    const deadline=Date.now()+100000;let err=null,got=false,usedR=r,fromCache=false;
+    for(const rr of[r,Math.round(r*.6),Math.round(r*.35)]){                    // each retry covers a smaller area
+      if(got||Date.now()>deadline)break;usedR=rr;
+      try{const key=GCache.key(lat,lon,rr,net.paths);let ways=await GCache.get(key);fromCache=!!ways;
+        if(!ways)ways=await this.fetchWays(lat,lon,rr,net,types);
+        this.reset();Geo.set(lat,lon);this.build(ways);
+        if(this.segs.length<20)throw new Error('almost no roads returned here');
+        if(!fromCache)GCache.put(key,ways);
+        got=true;}
+      catch(e){err=e.message;}}
+    if(got){if(usedR<r)UI.toast('Street data loaded for a smaller area ('+usedR+' m).',4000);else if(fromCache)console.info('Street data from the local cache.');}
+    else if(allowSynth){this.reset();Geo.set(lat,lon);this.synth(r);this.synthetic=true;UI.toast('Street data unavailable, using a practice grid. ('+err+')',6000);}
+    else{this.reset();Geo.set(lat,lon);this.failed=err||'unknown error';console.warn('Street data failed:',this.failed);}
+    this.finish(r);
+    if(got&&(G.cfg.poi||'street')!=='street'){
+      if(this._ofmPois&&this._ofmPois.length&&!fromCache)this.pois=this._ofmPois;                // landmarks came with the tiles
+      else await this.loadPOIs(lat,lon,r);}
+    if(got)console.info('Street data source:',fromCache?'local cache':this.source);
+  },
+  async loadPOIs(lat,lon,r){
+    this.pois=[];
+    if(this.synthetic){const kinds=['tourist','food','food','tourist','other'],nm=['Old Fort','Demo Burger','Corner Cafe','City Museum','Cinema'];
+      kinds.forEach((k,i)=>{const n=this.junc[(i*37+11)%this.junc.length];this.pois.push({x:n.x+25,y:n.y+20,name:nm[i],kind:k});});return;}
+    try{const a='(around:'+r+','+lat+','+lon+')';
+      const q='[out:json][timeout:25];(nwr["tourism"~"^(attraction|museum|gallery|viewpoint|zoo|theme_park|artwork)$"]["name"]'+a+';nwr["historic"]["name"]'+a+';nwr["leisure"~"^(park|stadium)$"]["name"]'+a+';nwr["amenity"~"^(restaurant|fast_food|cafe|pub|bar|cinema|theatre|marketplace)$"]["name"]'+a+';nwr["shop"~"^(mall|supermarket)$"]["name"]'+a+';);out center 500;';
+      const js=await this.overpass(q,null,12000),seen=new Set();
+      for(const e of js.elements||[]){const t=e.tags||{},c=e.center||e;if(c.lat==null||!t.name||seen.has(t.name))continue;seen.add(t.name);
+        const kind=(t.tourism||t.historic||/^(park|stadium)$/.test(t.leisure||''))?'tourist':/^(restaurant|fast_food|cafe|pub|bar)$/.test(t.amenity||'')?'food':'other';
+        const[x,y]=Geo.xy(c.lat,c.lon);this.pois.push({x,y,name:t.name,kind});}
+    }catch(e){this.pois=[];}
+  },
+  synth(r){const sp=150,n=clamp(Math.floor(r/sp),3,8),A='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for(let i=-n;i<=n;i++)for(let j=-n;j<=n;j++)this.addNode(i+'_'+j,i*sp,j*sp);
+    for(let i=-n;i<=n;i++)for(let j=-n;j<=n;j++){
+      if(i<n)this.addEdge(i+'_'+j,(i+1)+'_'+j,'Street '+(j+n+1));
+      if(j<n)this.addEdge(i+'_'+j,i+'_'+(j+1),A[i+n]+' Avenue');}},
+  finish(r){
+    this.segs.forEach((s,i)=>{const A=this.nodes.get(s.a),B=this.nodes.get(s.b);
+      const x0=Math.floor(Math.min(A.x,B.x)/this.cell),x1=Math.floor(Math.max(A.x,B.x)/this.cell),y0=Math.floor(Math.min(A.y,B.y)/this.cell),y1=Math.floor(Math.max(A.y,B.y)/this.cell);
+      for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(this.grid.get(k)||this.grid.set(k,[]).get(k)).push(i);}});
+    for(const n of this.nodes.values()){
+      const names=[...n.names].filter(s=>s!=='unnamed road');
+      n.label=names.length>1?names[0]+' and '+names[1]:names.length?names[0]+' and a side road':'an unnamed junction';
+      const deg=this.roadJ?n.adj.filter(e=>!e.p).length:n.adj.length;
+      if(deg>=3&&hyp(n.x,n.y)<=r)this.junc.push(n);}
+    if(!this.junc.length)this.junc=[...this.nodes.values()].filter(n=>n.adj.length>=2);
+    this.ready=true;},
+  label(n){return n.label;},
+  snap(x,y,hdg,spd,prev,ap){
+    const cx=Math.floor(x/this.cell),cy=Math.floor(y/this.cell);let best=null;
+    const P=prev!=null?this.segs[prev]:null;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const l=this.grid.get((cx+dx)+','+(cy+dy));if(!l)continue;
+      for(const i of l){const s=this.segs[i];if(s.p&&!ap)continue;const A=this.nodes.get(s.a),B=this.nodes.get(s.b),r=segDist(x,y,A.x,A.y,B.x,B.y);let sc=r.d;
+        if(P&&i!==prev&&!(P.a===s.a||P.a===s.b||P.b===s.a||P.b===s.b))sc+=8;           // hysteresis: stay on / next to current road
+        if(spd>3&&hdg!=null){const dd=Math.abs(angDiff(hdg,bearingXY(B.x-A.x,B.y-A.y))),off=Math.min(dd,180-dd);if(off>60)sc+=(off-60)/12;}
+        if(!best||sc<best.sc)best={sc,d:r.d,x:r.x,y:r.y,seg:i};}}
+    if(!best||best.d>45)return{x,y,seg:null};
+    return{x:best.x,y:best.y,seg:best.seg};},
+  nearJunction(x,y,max){let b=null,bd=max;for(const n of this.junc){const d=hyp(n.x-x,n.y-y);if(d<bd){bd=d;b=n;}}return b;},
+  nearNode(x,y){let b=null,bd=1e9;for(const n of this.nodes.values()){const d=hyp(n.x-x,n.y-y);if(d<bd){bd=d;b=n;}}return b;},
+  walk(x,y,seg,hdg,nJ,ap){
+    if(seg==null)return{pts:[[x,y]],js:[]};
+    const s=this.segs[seg],A=this.nodes.get(s.a),B=this.nodes.get(s.b);
+    const fwd=Math.abs(angDiff(hdg,bearingXY(B.x-A.x,B.y-A.y)))<=90;
+    let prev=fwd?A:B,cur=fwd?B:A,dir=bearingXY(cur.x-prev.x,cur.y-prev.y);
+    const pts=[[x,y],[cur.x,cur.y]],js=[];
+    for(let k=0;k<80;k++){
+      const ca=ap?cur.adj:cur.adj.filter(e=>!e.p);
+      if(ca.length>=3){js.push(cur.id);if(js.length>=nJ)break;}
+      let be=null,bt=999;
+      for(const e of ca){if(e.to===prev.id&&ca.length>1)continue;const N=this.nodes.get(e.to),t=Math.abs(angDiff(bearingXY(N.x-cur.x,N.y-cur.y),dir));if(t<bt){bt=t;be=N;}}
+      if(!be)break;prev=cur;cur=be;dir=bearingXY(cur.x-prev.x,cur.y-prev.y);pts.push([cur.x,cur.y]);}
+    return{pts,js};},
+  reach(start,blocked){const seen=new Set([start]),st=[start];
+    while(st.length){const u=st.pop();for(const e of this.nodes.get(u).adj)if(!seen.has(e.to)&&!blocked.has(e.to)){seen.add(e.to);st.push(e.to);}}
+    return seen;},
+  distMap(src,ap){const dist=new Map([[src,0]]),h=[[0,src]];
+    const push=it=>{h.push(it);let i=h.length-1;while(i>0){const q=(i-1)>>1;if(h[q][0]<=h[i][0])break;[h[q],h[i]]=[h[i],h[q]];i=q;}};
+    const pop=()=>{const top=h[0],last=h.pop();if(h.length){h[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<h.length&&h[l][0]<h[m][0])m=l;if(r<h.length&&h[r][0]<h[m][0])m=r;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m;}}return top;};
+    while(h.length){const[d,u]=pop();if(d>(dist.has(u)?dist.get(u):1e18))continue;
+      for(const e of this.edgesFor(this.nodes.get(u),ap)){const nd=d+e.w;if(nd<(dist.has(e.to)?dist.get(e.to):1e18)){dist.set(e.to,nd);push([nd,e.to]);}}}
+    return dist;},
+  shortest(a,b){
+    const dist=new Map([[a,0]]),h=[[0,a]];
+    const push=it=>{h.push(it);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p;}};
+    const pop=()=>{const top=h[0],last=h.pop();if(h.length){h[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<h.length&&h[l][0]<h[m][0])m=l;if(r<h.length&&h[r][0]<h[m][0])m=r;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m;}}return top;};
+    while(h.length){const[d,u]=pop();if(u===b)return d;if(d>(dist.has(u)?dist.get(u):1e18))continue;
+      for(const e of this.nodes.get(u).adj){const nd=d+e.w;if(nd<(dist.has(e.to)?dist.get(e.to):1e18)){dist.set(e.to,nd);push([nd,e.to]);}}}
+    return Infinity;}};
+function pointAlong(pts,d){let acc=0;for(let i=1;i<pts.length;i++){const l=hyp(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(acc+l>=d){const f=(d-acc)/(l||1);return[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*f,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*f];}acc+=l;}return pts[pts.length-1];}
 
+/* ================= Walker (sim rider + practice bots) ================= */
+class Walker{
+  constructor(from,to){this.from=from;this.to=to;this.s=0;this.v=0;this.vt=0;this.acc=0;this.intent=null;this.bot=false;this.ap=false;}
+  step(dt){
+    const v0=this.v,dv=this.vt-this.v,m=2.5*dt;this.v+=clamp(dv,-m*1.6,m);this.acc=(this.v-v0)/dt;
+    let d=this.v*dt;
+    while(d>0){const A=Graph.nodes.get(this.from),B=Graph.nodes.get(this.to),rem=hyp(B.x-A.x,B.y-A.y)-this.s;
+      if(d<rem){this.s+=d;d=0;}else{d-=Math.max(rem,0);this.arrive();}}}
+  classify(B,fromId){const adj=Graph.edgesFor(B,this.ap);let opts=adj.filter(e=>e.to!==fromId);if(!opts.length)opts=adj;
+    const A=Graph.nodes.get(fromId),dir=bearingXY(B.x-A.x,B.y-A.y);
+    return opts.map(o=>{const N=Graph.nodes.get(o.to),rel=angDiff(bearingXY(N.x-B.x,N.y-B.y),dir);return{o,N,rel,k:rel<-35?'L':rel>35?'R':'S'};});}
+  look(){let prev=Graph.nodes.get(this.from),cur=Graph.nodes.get(this.to),dist=hyp(cur.x-prev.x,cur.y-prev.y)-this.s;   // next real junction ahead
+    for(let k=0;k<80;k++){const adj=Graph.edgesFor(cur,this.ap),opts=adj.filter(e=>e.to!==prev.id);if(opts.length!==1)break;dist+=opts[0].w;prev=cur;cur=Graph.nodes.get(opts[0].to);}
+    return{node:cur,prev,dist:Math.max(0,dist),exits:this.classify(cur,prev.id)};}
+  arrive(){
+    const B=Graph.nodes.get(this.to),ex=this.classify(B,this.from),nom={L:-90,S:0,R:90};let e;this.missed=null;
+    const straight=()=>ex.reduce((b,x)=>!b||Math.abs(x.rel)<Math.abs(b.rel)?x:b,null);
+    if(ex.length>1&&this.intent){const c=ex.filter(x=>x.k===this.intent);
+      if(c.length)e=c.reduce((b,x)=>!b||Math.abs(x.rel-nom[this.intent])<Math.abs(b.rel-nom[this.intent])?x:b,null);
+      else{e=straight();this.missed=this.intent;}
+      this.intent=null;}
+    else if(ex.length>1&&this.bot)e=pick(ex);
+    else e=straight();
+    this.from=this.to;this.to=e.o.to;this.s=0;}
+  pos(){const A=Graph.nodes.get(this.from),B=Graph.nodes.get(this.to),L=hyp(B.x-A.x,B.y-A.y)||1,f=this.s/L;
+    return{x:A.x+(B.x-A.x)*f,y:A.y+(B.y-A.y)*f,hdg:bearingXY(B.x-A.x,B.y-A.y)};}
+}
+
+/* ================= audio: Bluetooth helmet call-outs (SpeechSynthesis) + sfx ================= */
+const Sfx={ctx:null,
+  unlock(){try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();this.ctx.resume();}catch(e){}},
+  tone(f0,f1,dur,type,vol){const c=this.ctx;if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;
+    o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(c.destination);o.start();o.stop(t+dur);},
+  boom(){this.tone(120,28,.9,'sine',.9);this.tone(62,20,.9,'triangle',.7);},
+  derez(){this.tone(900,60,.7,'sawtooth',.3);},
+  ping(){this.tone(880,880,.18,'square',.2);},
+  alarm(){this.tone(660,440,.5,'square',.25);}};
+const Say={on:true,q:[],busy:false,tok:0,last:new Map(),
+  say(text,o={}){const pri=o.pri||1,key=o.key||text,t=now();
+    if(o.cd&&t-(this.last.get(key)||0)<o.cd)return;this.last.set(key,t);UI.caption(text);
+    if(!this.on||!('speechSynthesis' in window))return;
+    if(pri>=3){speechSynthesis.cancel();this.tok++;this.q=[];this.busy=false;}else if(this.q.length>=3)this.q.shift();
+    this.q.push(text);this.next();},
+  next(){if(this.busy||!this.q.length)return;
+    const u=new SpeechSynthesisUtterance(this.q.shift()),tok=++this.tok;u.rate=1.05;u.lang=/^en/i.test(navigator.language)?navigator.language:'en-US';
+    let to;const done=()=>{if(tok!==this.tok)return;clearTimeout(to);this.busy=false;this.next();};
+    u.onend=done;u.onerror=done;this.busy=true;to=setTimeout(done,9000);speechSynthesis.speak(u);},
+  unlock(){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(e){}Sfx.unlock();}};
+const Compass={h:null,on:false,
+  async request(){try{
+    if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')return;}
+    const f=e=>{let h=null;if(e.webkitCompassHeading!=null)h=e.webkitCompassHeading;else if(e.absolute&&e.alpha!=null)h=(360-e.alpha)%360;if(h!=null)this.h=h;};
+    window.addEventListener('deviceorientationabsolute',f,true);window.addEventListener('deviceorientation',f,true);this.on=true;}catch(e){}}};
+const Mic={stream:null,shoutOn:false,last:0,base:.01,
+  async get(){if(!this.stream)this.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});return this.stream;},
+  async startShout(){if(this.shoutOn)return;
+    try{const s=await this.get();Sfx.unlock();const c=Sfx.ctx,src=c.createMediaStreamSource(s),an=c.createAnalyser();an.fftSize=1024;src.connect(an);
+      const bins=new Uint8Array(an.frequencyBinCount),hz=c.sampleRate/an.fftSize;this.shoutOn=true;
+      setInterval(()=>{an.getByteFrequencyData(bins);let low=0,voice=0,tot=0;
+        for(let i=1;i<bins.length;i++){const f=i*hz,e=bins[i]*bins[i];tot+=e;if(f<200)low+=e;else if(f<=3400)voice+=e;}
+        if(!tot)return;const lvl=Math.sqrt(voice/bins.length)/255,vr=voice/tot,lr=low/tot;
+        if(lvl>Math.max(this.base*3.2,.06)&&vr>.55&&lr<.3){this.last=now();if(!Voice.srOK)Voice.fire();}   // loud and voice-band shaped, not wind rumble
+        else this.base=this.base*.97+lvl*.03;},40);
+    }catch(e){UI.toast('Mic unavailable: '+e.message,4000);}}};
+const Voice={on:false,cmd:false,srOK:false,lastFire:0,k:-1,hit:false,lc:{},
+  start(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR||this.on)return;
+    this.srOK=true;const r=new SR();r.continuous=true;r.interimResults=true;r.lang='en-GB';
+    r.onresult=e=>{const idx=e.results.length-1,t=e.results[idx][0].transcript.toLowerCase();
+      if(this.k!==idx){this.k=idx;this.hit=false;}
+      for(const w of['challenge','accept','snare'])if(t.includes(w)&&now()-(this.lc[w]||0)>2500){this.lc[w]=now();this.cmd=true;Act.do(w);this.cmd=false;}
+      if(G.mode==='arena'&&!this.hit&&FIRE_WORDS.some(w=>new RegExp('\\b'+w+'\\b').test(t))&&(!Mic.shoutOn||now()-Mic.last<1500)){this.hit=true;this.fire();}};
+    r.onend=()=>{if(this.on)try{r.start();}catch(e){}};
+    try{r.start();this.on=true;}catch(e){}},
+  fire(){if(now()-this.lastFire<700)return;this.lastFire=now();this.cmd=true;Act.do('fire');this.cmd=false;}};
+
+/* ===== proximity voice chat: WebRTC audio mesh, per-speaker loudness normalising, distance gain, stereo pan by bearing ===== */
+const Chat={peers:new Map(),on:false,ice:[{urls:'stun:stun.cloudflare.com:3478'}],tm:null,mix:null,
+  async start(){if(this.on||G.cfg.chat==='off')return;
+    try{const s=await Mic.get();Sfx.unlock();const c=Sfx.ctx;this.mix=c.createGain();const comp=c.createDynamicsCompressor();this.mix.connect(comp);comp.connect(c.destination);
+      if(CFG.turnUrl){try{const j=await(await fetch(CFG.turnUrl)).json();if(j.iceServers)this.ice=j.iceServers;}catch(e){}}
+      this.on=true;this.sync();this.tm=setInterval(()=>this.update(),250);}
+    catch(e){UI.toast('Voice chat needs the microphone: '+e.message,4000);}},
+  sync(){if(!this.on)return;for(const p of P.values()){if(p.bot||p.id===me.id||this.peers.has(p.id))continue;if(me.id<p.id)this.call(p.id);}},   // lower id makes the offer
+  pc(id){let o=this.peers.get(id);if(o)return o;const pc=new RTCPeerConnection({iceServers:this.ice});o={pc,gain:null,pan:null,an:null,norm:1};this.peers.set(id,o);
+    Mic.stream.getAudioTracks().forEach(t=>pc.addTrack(t,Mic.stream));
+    pc.onicecandidate=e=>{if(e.candidate)Net.send({type:'rtc',to:id,k:'ice',d:e.candidate});};
+    pc.ontrack=e=>this.attach(o,e.streams[0]);
+    pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState)){this.peers.delete(id);}};
+    return o;},
+  async call(id){try{const o=this.pc(id),off=await o.pc.createOffer();await o.pc.setLocalDescription(off);Net.send({type:'rtc',to:id,k:'offer',d:off});}catch(e){}},
+  async onRtc(m){if(m.to!==me.id||!this.on)return;const o=this.pc(m.from);
+    try{if(m.k==='offer'){await o.pc.setRemoteDescription(m.d);const a=await o.pc.createAnswer();await o.pc.setLocalDescription(a);Net.send({type:'rtc',to:m.from,k:'answer',d:a});}
+      else if(m.k==='answer')await o.pc.setRemoteDescription(m.d);
+      else if(m.k==='ice')await o.pc.addIceCandidate(m.d);}catch(e){}},
+  attach(o,stream){const c=Sfx.ctx,el=new Audio();el.srcObject=stream;el.muted=true;if(el.play)el.play().catch(()=>{});   // some browsers only deliver the stream if an element consumes it
+    const src=c.createMediaStreamSource(stream);o.an=c.createAnalyser();o.an.fftSize=512;o.td=new Uint8Array(o.an.fftSize);o.gain=c.createGain();o.gain.gain.value=0;
+    o.pan=c.createStereoPanner?c.createStereoPanner():null;src.connect(o.an);src.connect(o.gain);
+    if(o.pan){o.gain.connect(o.pan);o.pan.connect(this.mix);}else o.gain.connect(this.mix);},
+  update(){const m=P.get(me.id);if(!m||!Sfx.ctx)return;const R=G.cfg.chatR,mode=G.cfg.chat,t=Sfx.ctx.currentTime;
+    for(const[id,o]of this.peers){if(!o.gain)continue;const p=P.get(id);
+      o.an.getByteTimeDomainData(o.td);let sum=0;for(const v of o.td){const x=(v-128)/128;sum+=x*x;}const rms=Math.sqrt(sum/o.td.length);
+      if(rms>.01)o.norm=clamp(o.norm*.85+(.12/rms)*.15,.4,4);                              // normalise every speaker to one baseline loudness
+      let g=mode==='off'?0:1,pan=0;
+      if(p&&p.sx!=null&&m.sx!=null){const d=hyp(p.sx-m.sx,p.sy-m.sy);if(mode==='prox')g=d>=R?0:Math.pow(1-d/R,1.6);
+        pan=clamp(Math.sin(angDiff(bearingXY(p.sx-m.sx,p.sy-m.sy),m.hdg||0)*D2R),-1,1)*(mode==='prox'?1:.4);}
+      o.gain.gain.setTargetAtTime(g*o.norm,t,.1);if(o.pan)o.pan.pan.setTargetAtTime(pan,t,.1);}}};
+
+/* ================= network (pluggable realtime transport) ================= */
+const Net={ch:null,ws:null,sb:null,
+  async join(room){const t=CFG.transport;
+    if(t==='broadcast'){this.ch=new BroadcastChannel('tarmac-'+room);this.ch.onmessage=e=>onNet(e.data);}
+    else if(t==='websocket'){await new Promise((res,rej)=>{this.ws=new WebSocket(CFG.wsUrl+'?room='+room);this.ws.onopen=res;this.ws.onerror=()=>rej(new Error('relay unreachable'));this.ws.onmessage=e=>onNet(JSON.parse(e.data));});}
+    else{await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+      const sb=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey);
+      this.sb=sb.channel('tarmac-'+room,{config:{broadcast:{self:false}}});
+      this.sb.on('broadcast',{event:'m'},({payload})=>onNet(payload));
+      await new Promise(res=>this.sb.subscribe(s=>{if(s==='SUBSCRIBED')res();}));}},
+  send(m){m.from=me.id;
+    if(this.ch)this.ch.postMessage(m);
+    else if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify(m));
+    else if(this.sb)this.sb.send({type:'broadcast',event:'m',payload:m});}};
+
+/* ================= state ================= */
+const me={id:rid(),name:'',bike:'low',room:''};
+const P=new Map();
+const newG=()=>({status:'lobby',mode:'tron',mods:{},cfg:{r:1500,bots:0,center:'gps',chat:'prox',chatR:400,poi:'street',dest:null,time:'default',rounds:6},hostId:null,arena:null,startAt:0,t0:0,pl:{},d:{},result:null,seq:0});
+let G=newG();
+const isHost=()=>G.hostId===me.id;
+const rl=id=>(G.pl[id]||{}).role,tmOf=id=>(G.pl[id]||{}).team;
+const roster=()=>[...P.values()].filter(p=>p.sx!=null&&(p.bot||p.id===me.id||now()-p.t<20000));
+const live=()=>roster().filter(p=>G.pl[p.id]);
+const alive=()=>live().filter(p=>G.pl[p.id].alive!==false);
+const pingIn=()=>Math.max(0,Math.ceil(((G.d&&G.d.nextPing)-now())/1000));
+const nm=id=>(P.get(id)||{}).name||'Rider';
+const pd=(a,b)=>hyp(a.sx-b.sx,a.sy-b.sy);
+const clockDir=(from,to)=>{const rel=(bearingXY(to.sx-from.sx,to.sy-from.sy)-(from.hdg||0)+360)%360;return(Math.round(rel/30)||12)+" o'clock";};
+const stName=p=>p.st&&p.st!=='unnamed road'?p.st:'an unnamed road';
+
+function applyPos(m,seg){
+  let p=P.get(m.i);if(!p){p={id:m.i,name:m.n,bike:m.k,bot:!!m.b};P.set(m.i,p);}
+  Object.assign(p,{aim:m.am,ac:m.ac,name:m.n,bike:m.k,lat:m.lat,lon:m.lon,sla:m.sla,slo:m.slo,spd:m.spd,hdg:m.hdg,acc:m.acc,boomUntil:m.bu||0,st:m.st,seg:seg==null?null:seg,t:now()});
+  [p.x,p.y]=Geo.xy(m.lat,m.lon);[p.sx,p.sy]=Geo.xy(m.sla,m.slo);p.fl=(m.fl||[]).map(q=>Geo.xy(q[0],q[1]));
+  if(p.rx==null){p.rx=p.sx;p.ry=p.sy;}
+  if(G.mode==='tron'&&G.status!=='lobby'&&(G.pl[p.id]||{}).alive!==false)Trails.add(p);}
+function rebase(){for(const p of P.values()){if(p.lat==null)continue;[p.x,p.y]=Geo.xy(p.lat,p.lon);[p.sx,p.sy]=Geo.xy(p.sla,p.slo);p.rx=p.sx;p.ry=p.sy;}Me.last=null;Me.la=null;Trails.m.clear();}
+/* Snap -> publish (used by GPS, sim rider and bots). Broadcast: lat, lon, snapped point, heading, speed, accel, flare path */
+function publish(src,lat,lon,kmh,hdg,acc,bu,aim,ac){
+  const pr=prof(src),ap=pr.snap==='all',[x,y]=Geo.xy(lat,lon),old=P.get(src.id);
+  const sn0=(Graph.ready&&pr.snap!=='none'&&Graph.segs.length)?Graph.snap(x,y,hdg,kmh/3.6,old&&old.seg,ap):{x,y,seg:null};
+  const sn=CFG.snapPositions?sn0:{x,y,seg:sn0.seg};                      // raw GPS position. The segment is only used to name the street and project the flare.
+  const[sla,slo]=Geo.ll(sn.x,sn.y);let fl=[];
+  const wantFl=kmh>pr.flare-pr.step*2||(G.d&&G.d.flag&&G.d.flag.by===src.id);
+  const rd=v=>+v.toFixed(5);
+  if(wantFl){
+    if(pr.snap==='none'||sn.seg==null||!Graph.ready)fl=[200,400,600].map(d=>Geo.ll(sn.x+Math.sin(hdg*D2R)*d,sn.y+Math.cos(hdg*D2R)*d).map(rd));   // open class, or no road known here: straight-line projection
+    else fl=Graph.walk(sn.x,sn.y,sn.seg,hdg,3,ap).pts.slice(1).map(q=>Geo.ll(q[0],q[1]).map(rd));}
+  const m={type:'pos',i:src.id,n:src.name,k:src.bike,b:src.bot?1:0,lat,lon,sla,slo,spd:+kmh.toFixed(1),hdg:Math.round(hdg),acc:+acc.toFixed(2),bu:bu||0,am:Math.round(aim==null?hdg:aim),ac:Math.round(ac==null?5:ac),fl,st:sn.seg!=null?Graph.segs[sn.seg].name:''};
+  applyPos(m,sn.seg);Net.send(m);}
+
+/* ================= my rider: GPS -> speed, heading, acceleration, Sonic Boom ================= */
+const Me={last:null,la:null,boomUntil:0,boomCool:0,watch:null,
+  startGPS(){if(this.watch!=null||!navigator.geolocation)return;
+    this.watch=navigator.geolocation.watchPosition(pos=>{const c=pos.coords;this.feed(c.latitude,c.longitude,c.speed,c.heading,c.accuracy,pos.timestamp,false);},
+      err=>UI.toast('GPS: '+err.message,4000),{enableHighAccuracy:true,maximumAge:0,timeout:15000});},
+  feed(lat,lon,sp,hd,acc,ts,sim){
+    const t=now(),[x,y]=Geo.xy(lat,lon),L=this.last,dtp=L?(ts-L.ts)/1000:0;
+    const v=(sp!=null&&!isNaN(sp))?sp:(L&&dtp>.2?hyp(x-L.x,y-L.y)/dtp:0);
+    const h=(hd!=null&&!isNaN(hd)&&v>1.5)?hd:(L&&hyp(x-L.x,y-L.y)>3?bearingXY(x-L.x,y-L.y):(L?L.h:0));
+    let a=0;
+    if(!this.la)this.la={v,ts};else{const dt=(ts-this.la.ts)/1000;if(dt>=(sim?.15:.4)){a=dt<3?(v-this.la.v)/dt:0;this.la={v,ts};}}
+    const vs=L?L.vs*.4+v*.6:v;this.last={x,y,ts,h,vs};
+    const pr=prof(me);
+    if(a>pr.boom&&v*3.6>pr.minBoom&&(acc==null||acc<30)&&t>this.boomCool&&G.status!=='lobby'){
+      this.boomUntil=t+CFG.boomMs;this.boomCool=t+CFG.boomMs+3000;
+      const m={type:'boom',id:me.id,n:me.name,until:this.boomUntil};Net.send(m);onBoom(m);}
+    publish(me,lat,lon,vs*3.6,h,a,this.boomUntil,(clsOf(me.bike)==='foot'&&Compass.h!=null)?Compass.h:h,acc==null?8:acc);
+    this.after(P.get(me.id));},
+  after(p){ // client-side voice hints that only need my own position
+    if(G.mode==='tron'&&G.status==='running'&&(G.pl[me.id]||{}).alive!==false&&(p.seg!=null||clsOf(me.bike)==='open')&&p.spd>prof(me).stealth*.15){
+      const h=(p.hdg||0)*D2R,pts=p.seg!=null?Graph.walk(p.sx,p.sy,p.seg,p.hdg||0,2,clsOf(me.bike)==='foot').pts:[[p.sx,p.sy],[p.sx+Math.sin(h)*60,p.sy+Math.cos(h)*60]],t=now();
+      for(const q of P.values()){if(q.id===me.id)continue;const tr=Trails.get(q.id);if(!tr)continue;
+        for(const d of[20,35,50]){const s=pointAlong(pts,d);if(Trails.hit(tr,s[0],s[1],t)){Say.say('Caution: Grid Wall 50 metres ahead.',{pri:2,cd:6000,key:'wall'});return;}}}}}};
+function onBoom(m){const p=P.get(m.id);if(p)p.boomUntil=m.until;Sfx.boom();Say.say('Sonic Boom detected. Target '+m.n+' position exposed.',{pri:3});}
+
+const Sim={on:false,w:null,tm:null,lobbyTm:null,
+  startLobby(){clearInterval(this.lobbyTm);this.lobbyTm=setInterval(()=>{if(this.on&&!this.w)Me.feed(DEMO.lat,DEMO.lon,0,0,5,now(),true);},1000);},
+  begin(){if(!this.on||!Graph.ready||!Graph.junc.length)return;
+    const cs=Graph.junc.filter(j=>hyp(j.x,j.y)<300),nd=pick(cs.length?cs:Graph.junc),ap=clsOf(me.bike)==='foot';
+    this.w=new Walker(nd.id,pick(Graph.edgesFor(nd,ap)).to);this.w.ap=ap;Me.last=null;Me.la=null;$('#simSpd').max=prof(me).max;$('#simSpd').value=0;$('#simVal').textContent=0;
+    clearInterval(this.tm);this.tm=setInterval(()=>{const w=this.w;if(!w)return;w.step(.2);if(w.missed){UI.toast('No '+({L:'left',R:'right',S:'straight'})[w.missed]+' turn there. Went straight on.',1800);w.missed=null;}const q=w.pos(),[la,lo]=Geo.ll(q.x,q.y);Me.feed(la,lo,w.v,q.hdg,4,now(),true);},200);},
+  u(){const w=this.w;if(!w)return;const t=w.from;w.from=w.to;w.to=t;const A=Graph.nodes.get(w.from),B=Graph.nodes.get(w.to);w.s=Math.max(0,hyp(B.x-A.x,B.y-A.y)-w.s);},
+  stop(){clearInterval(this.tm);this.w=null;}};
+
+/* ================= Tron trails ================= */
+const Trails={m:new Map(),
+  add(p){let a=this.m.get(p.id);if(!a){a=[];this.m.set(p.id,a);}const l=a[a.length-1];if(l&&hyp(l.x-p.sx,l.y-p.sy)<4)return;
+    a.push({t:p.t,x:p.sx,y:p.sy});while(a.length&&p.t-a[0].t>CFG.trailMs+4000)a.shift();},
+  get(id){return this.m.get(id);},
+  hit(a,x,y,t){for(let i=1;i<a.length;i++){const A=a[i-1],B=a[i];if(t-B.t<CFG.trailGraceMs||t-A.t>CFG.trailMs)continue;if(segDist(x,y,A.x,A.y,B.x,B.y).d<PROX.trail)return true;}return false;}};
+
+/* ================= visibility: the Equalizer Engine ================= */
+const kingNow=id=>G.mode==='king'&&G.d.crowns&&G.d.crowns.some(c=>c.by===id);
+function visInfo(p,viewer){
+  const t=now(),M=MODES[G.mode],kmh=p.spd||0,pr=prof(p);
+  const o=(G.status==='running'&&M&&M.vis&&M.vis(p,viewer))||{};
+  const stl=pr.stealth-(o.stealthShift||0)*pr.step,bonus=o.radiusBonus||0;
+  let radius=kmh>stl?Math.ceil((kmh-stl)/pr.step)*pr.stepM+bonus:0;radius=Math.min(radius,pr.maxR+bonus);
+  let show=kmh>stl,flare=kmh>pr.flare,flash=null,boom=false,forced=false;
+  if(o.hide)show=false;if(o.show){show=true;forced=true;}if(o.radius!=null)radius=Math.max(radius,o.radius);if(o.flare)flare=true;if(o.flash)flash=o.flash;
+  if(M&&M.teams&&viewer&&tmOf(viewer.id)&&tmOf(viewer.id)===tmOf(p.id))show=true;
+  if(t<(p.boomUntil||0)){show=true;boom=true;}                       // Sonic Boom bypasses every stealth rule
+  if((G.pl[p.id]||{}).alive===false)show=false;
+  return show?{radius,flare:flare&&p.fl&&p.fl.length>0,flash,boom,exact:boom||forced}:null;}
+function isBlind(){const m=P.get(me.id);return!!m&&G.status==='running'&&(m.spd||0)>prof(m).blind&&!kingNow(me.id);}
+
+/* ================= host referee ================= */
+function addressed(to){if(to==='all')return true;if(typeof to==='string')return to===me.id;const g=G.pl[me.id]||{};return(!to.team||g.team===to.team)&&(!to.role||g.role===to.role)&&(!to.not||to.not!==me.id);}
+function playSay(m){Say.say(m.text,{pri:m.pri||1});if(m.sfx&&Sfx[m.sfx])Sfx[m.sfx]();}
+const H={mem:new Map(),dm:new Map(),cd:new Map(),
+  hold(k,c,dt){const v=c?(this.mem.get(k)||0)+dt:0;if(v)this.mem.set(k,v);else this.mem.delete(k);return v;},
+  clearHolds(pre){for(const k of[...this.mem.keys()])if(k.startsWith(pre))this.mem.delete(k);},
+  cool(k,s){const t=now();if(t<(this.cd.get(k)||0))return false;this.cd.set(k,t+s*1000);return true;},
+  closing(k,d){const o=this.dm.get(k);this.dm.set(k,d);return o!=null&&d<o-1;},
+  say(to,text,o={}){const m={type:'say',to,text,pri:o.pri||1,sfx:o.sfx};if(addressed(to))playSay(m);Net.send(m);},
+  hidden(p){return(p.spd||0)<=prof(p).stealth&&now()>=(p.boomUntil||0);},
+  ping(target,aud,r,who){const t=now(),a=Math.random()*2*Math.PI,off=r*.5*Math.sqrt(Math.random()),x=target.sx+Math.sin(a)*off,y=target.sy+Math.cos(a)*off,n=Graph.nearJunction(x,y,400);
+    G.d.pings=(G.d.pings||[]).filter(q=>q.until>t);G.d.pings.push({x,y,r,until:t+10000,aud});
+    this.say(aud,'Location ping: '+who+' within '+r+' metres of '+(n?n.label:'the grid')+'.',{pri:2,sfx:'ping'});
+    this.say(target.id,'You were pinged. Search zone '+r+' metres.',{pri:1});},
+  end(title,lines){G.status='ended';G.result={title,lines:lines||[]};this.say('all',title,{pri:3});Host.push();},
+  reset(){this.mem.clear();this.dm.clear();this.cd.clear();}};
+function assignTeams(ps){const hi=shuffle(ps.filter(p=>p.bike==='high')),lo=shuffle(ps.filter(p=>p.bike!=='high')),out={};let i=Math.floor(Math.random()*2);
+  [...hi,...lo].forEach(p=>{out[p.id]=['red','blue'][i++%2];});return out;}
+const farJunction=(cx,cy,lo,hi)=>{const c=Graph.junc.filter(n=>{const d=hyp(n.x-cx,n.y-cy);return d>=lo&&d<=hi;});return pick(c.length?c:Graph.junc);};
+const dest=n=>({id:n.id,x:n.x,y:n.y,label:n.label});
+function fixedDest(c){const[x,y]=Geo.xy(c.lat,c.lon),nd=Graph.nearNode(x,y);return{id:nd.id,x,y,label:c.label||'the chosen spot'};}
+function pickDest(cx,cy,lo,hi){                                   // landmark destinations when the host asks for them, else an intersection
+  const pref=G.cfg.poi||'street';
+  if(pref!=='street'&&Graph.pois.length){
+    const kindOk=q=>pref==='any'||q.kind===pref,inArena=q=>hyp(q.x,q.y)<=G.arena.r*1.05;
+    let c=Graph.pois.filter(q=>kindOk(q)&&inArena(q)&&hyp(q.x-cx,q.y-cy)>=lo&&hyp(q.x-cx,q.y-cy)<=hi);
+    if(!c.length)c=Graph.pois.filter(q=>kindOk(q)&&inArena(q));
+    if(c.length){const q=pick(c),nd=Graph.nearNode(q.x,q.y);return{id:nd.id,x:q.x,y:q.y,label:q.name};}}
+  return dest(farJunction(cx,cy,lo,hi));}
+const shortFor=(p,wp,nd)=>clsOf(p.bike)==='open'?hyp(p.sx-wp.x,p.sy-wp.y):Graph.shortest(nd.id,wp.id);
+
+const Bots={list:[],
+  spawn(n){this.clear();const names=['Maple','Birch','Cedar','Rowan','Aspen','Hazel'],cs=Graph.junc.filter(j=>hyp(j.x,j.y)<300);
+    for(let i=0;i<n;i++){const nd=pick(cs.length?cs:Graph.junc),w=new Walker(nd.id,pick(Graph.edgesFor(nd,false)).to);w.bot=true;
+      const b={id:'bot'+i,name:'Bot '+names[i%6],bike:i%2?'high':'low',bot:true,w,next:0,nextFire:0};this.list.push(b);this.emit(b);}},
+  clear(){for(const b of this.list)P.delete(b.id);this.list=[];},
+  emit(b){const q=b.w.pos(),[la,lo]=Geo.ll(q.x,q.y);publish(b,la,lo,b.w.v*3.6,q.hdg,b.w.acc||0,0);},
+  step(dt){const t=now();for(const b of this.list){
+    if(G.status!=='running')b.w.vt=0;else if(t>b.next){b.next=t+8000+Math.random()*8000;b.w.vt=(25+Math.random()*(b.bike==='high'?60:35))/3.6;}
+    b.w.step(dt);this.emit(b);}}};
+
+const Host={tm:null,n:0,
+  push(){G.seq++;Net.send({type:'game',g:G});UI.sync();},
+  async start(){
+    if(G.status!=='lobby')return;const M=MODES[G.mode],humans=[...P.values()].filter(p=>!p.bot),missing=humans.filter(p=>p.sx==null);
+    if(missing.length){UI.toast('Waiting for a GPS fix from '+missing.map(p=>p.name).join(', '),4000);return;}
+    if(humans.length+G.cfg.bots<M.min){UI.toast(M.name+' needs '+M.min+'+ riders. Add practice bots to test.',4000);return;}
+    if(G.cfg.center==='gps'&&P.get(me.id).sx==null){UI.toast('No GPS fix yet.');return;}
+    $('#btnStart').disabled=true;UI.toast('Loading streets…',5000);
+    const h=P.get(me.id);let c=G.cfg.center==='demo'?DEMO:{lat:h.lat,lon:h.lon},r=G.cfg.r;
+    const fixed=(G.mode==='gridlock'&&!G.mods.duel&&G.cfg.dest)?G.cfg.dest:null;
+    if(fixed){const pts=humans.filter(p=>p.lat!=null).map(q=>[q.lat,q.lon]).concat([[fixed.lat,fixed.lon]]),la=pts.map(q=>q[0]),lo=pts.map(q=>q[1]);   // cover every rider and the goal
+      c={lat:(Math.min(...la)+Math.max(...la))/2,lon:(Math.min(...lo)+Math.max(...lo))/2};Geo.set(c.lat,c.lon);
+      const far=Math.max(...pts.map(q=>{const xy=Geo.xy(q[0],q[1]);return hyp(xy[0],xy[1]);}));r=Math.min(4500,Math.max(G.cfg.r,Math.round(far+500)));
+      if(r>3000)UI.toast('Big area: the street download may take a while.',4000);}
+    const hasFoot=humans.some(q=>clsOf(q.bike)==='foot'),nRoad=humans.filter(q=>clsOf(q.bike)==='road').length+G.cfg.bots,net={paths:hasFoot,roadJ:nRoad>0||!hasFoot};
+    await Graph.load(c.lat,c.lon,r,net,G.cfg.center==='demo'||Sim.on);rebase();
+    if(Graph.failed){UI.toast('Could not load street data ('+Graph.failed+'). Check the connection, try a smaller arena, or deploy the updated Worker (it caches street data). Nothing was started.',9000);$('#btnStart').disabled=false;return;}
+    G.arena={lat:c.lat,lon:c.lon,r,id:rid(),net};Arena.id=G.arena.id;
+    G.pl={};G.d={};G.result=null;H.reset();Trails.m.clear();Bots.spawn(G.cfg.bots);
+    M.setup();{const lim=timeLimitMin();G.d.dur=lim?lim*60000:1e12;}G.status='countdown';G.startAt=now()+CFG.countdownMs;
+    Sim.begin();startInputs();
+    this.push();this.loop();$('#btnStart').disabled=false;},
+  loop(){clearInterval(this.tm);let last=now();
+    this.tm=setInterval(()=>{try{const t=now(),dt=Math.min((t-last)/1000,1);last=t;Bots.step(dt);
+      if(G.status==='running'&&G.mode==='arena')for(const b of Bots.list)if(t>b.nextFire){b.nextFire=t+4000+Math.random()*6000;const bp=P.get(b.id);if(bp)fire(bp);}
+      if(G.status==='countdown'&&t>=G.startAt){G.status='running';G.t0=t;H.say('all','Go. Obey the road rules. The smart route wins.',{pri:2});}
+      if(G.status==='running')MODES[G.mode].tick(dt);
+      if(G.status==='running'&&G.d&&G.d.dur<1e11){const rem=G.d.dur-(t-G.t0);G.d.tw=G.d.tw||{};
+        for(const m of[300,60,30])if(rem<=m*1000&&rem>0&&m*1000<G.d.dur*.9&&!G.d.tw[m]){G.d.tw[m]=1;H.say('all',(m>=60?(m/60)+' minute'+(m>60?'s':''):m+' seconds')+' remaining.',{pri:2});}}
+      if(G.status==='ended'){clearInterval(this.tm);}
+      this.n++;if((G.status==='running'&&G.d&&(G.d.cur==='police'||G.d.cur==='tornado'))||this.n%2===0)this.push();}catch(e){console.error(e);}},250);},
+  back(){clearInterval(this.tm);Bots.clear();G.status='lobby';G.arena=null;G.pl={};G.d={};G.result=null;Arena.id=null;Sim.stop();this.push();},
+  act(m){const p=P.get(m.id),M=MODES[G.mode];if(p&&M.act&&G.status==='running')M.act(p,m.act);}};
+const Act={do(a){const p=P.get(me.id);
+  if(!Sim.on&&!Voice.cmd&&clsOf(me.bike)!=='foot'&&p&&p.spd>CFG.parkedKmh){UI.toast('Parked only. Say "'+a+'" instead.',2500);return;}
+  if(isHost())Host.act({id:me.id,act:a});else Net.send({type:'act',id:me.id,act:a});}};
+
+/* ================= game modes ================= */
+
+/* ================= Firefight (deathmatch / battle royale) engine ================= */
+let bursts=[],nearMap=new Map();
+const aimOf=p=>p.aim!=null?p.aim:(p.hdg||0);
+const foesOf=s=>{const g=G.pl[s.id],t=now();return alive().filter(q=>q.id!==s.id&&!(G.pl[q.id].down>t)&&!(G.mods.squads&&g.team&&G.pl[q.id].team===g.team));};
+function assistAim(s,aim,range,foes){let best=null;
+  for(const q of foes){const dx=q.sx-s.sx,dy=q.sy-s.sy,d=hyp(dx,dy);if(d>range||d<1)continue;const rel=angDiff(bearingXY(dx,dy),aim);if(Math.abs(rel)<=AIM.cone&&(best==null||Math.abs(rel)<Math.abs(best)))best=rel;}
+  return best==null?aim:aim+clamp(best,-AIM.max,AIM.max)*AIM.pull;}
+function volley(s,wk,aim0){const W=WEAPONS[wk],foes=foesOf(s);let aim=aim0;
+  if(G.mods.assist&&wk!=='railgun')aim=assistAim(s,aim,W.range,foes);          // the railgun never gets aim assist
+  if(W.spread)aim+=(Math.random()*2-1)*W.spread;
+  for(const q of foes){const dx=q.sx-s.sx,dy=q.sy-s.sy,d=hyp(dx,dy);if(d>W.range||d<.5)continue;
+    const rel=angDiff(bearingXY(dx,dy),aim),r=Math.abs(rel)*D2R,along=d*Math.cos(r),perp=Math.abs(d*Math.sin(r)),sl=Math.min(((s.ac||5)+(q.ac||5))/2,GPS_SLACK_CAP);
+    if(along<=0)continue;
+    let hit=perp<=W.half+sl;
+    if(wk==='shotgun'&&d<=10&&Math.abs(rel)<=15)hit=true;                      // 30 degree cone for the first 10 m, then a narrow beam
+    if(!hit)continue;
+    damage(s,q,Math.round(wk==='shotgun'?40-25*clamp((d-10)/90,0,1):W.dmg));}}
+function damage(s,q,dmg){const gq=G.pl[q.id];gq.hp=Math.max(0,gq.hp-dmg);
+  if(H.cool('hit'+q.id,1.5))H.say(q.id,'Hit. '+gq.hp+' health.',{pri:3});
+  if(H.cool('conf'+s.id,1.5))H.say(s.id,'Hit confirmed.',{pri:2,sfx:'ping'});
+  if(gq.hp<=0)kill(s,q);}
+function kill(s,q){const gq=G.pl[q.id],gs=G.pl[s.id];gs.kills++;gq.deaths++;gq.hp=0;
+  H.say('all',s.name+' neutralized '+q.name+'.',{pri:2});
+  if(G.mods.royale){gq.alive=false;H.say(q.id,'Eliminated. Spectator audio mode.',{pri:3,sfx:'derez'});}
+  else{gq.down=now()+15000;H.say(q.id,'Neutralized. Pull over safely and wait 15 seconds.',{pri:3,sfx:'derez'});}}
+function fire(p){const g=G.pl[p.id],t=now();if(!g||g.alive===false||g.down>t)return;const W=WEAPONS[g.weapon];
+  if(t<g.readyAt){if(H.cool('cyc'+p.id,3))H.say(p.id,'Weapon cycling.');return;}
+  const span=W.burst?W.burst.n*W.burst.every:0;g.readyAt=t+span+W.cool*1000;g.cycled=false;
+  if(W.burst){for(let i=0;i<W.burst.n;i++)bursts.push({id:p.id,wk:g.weapon,at:t+i*W.burst.every});}else volley(p,g.weapon,aimOf(p));
+  if(g.weapon==='railgun'){g.exposeUntil=t+8000;H.say('all','Railgun discharge detected. '+p.name+' exposed.',{pri:3,sfx:'boom'});}
+  else g.flareUntil=t+span+3000;}
+function spawnCache(kind){const d=G.d,R=(G.mods.royale?d.zoneR:G.arena.r)*.9;
+  const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<R&&d.caches.every(k=>k.gone||hyp(k.x-n.x,k.y-n.y)>120)))[0];if(!c)return;
+  d.caches.push({id:rid(),k:kind,w:kind==='weapon'?pick(['railgun','tommy','uzi','tommy','uzi']):null,x:c.x,y:c.y,st:c.adj[0]?c.adj[0].name:'',gone:false});}
+const TIME_DEFAULT={tron:0,outbreak:0,gridlock:15,vip:15,supply:10,border:15,ctf:15,king:15,catmouse:15,arena:15,disaster:0,mystery:0};   // minutes, 0 = no limit
+function timeLimitMin0(){const c=G.cfg.time;G.cfg.time='default';const v=timeLimitMin();G.cfg.time=c;return v;}
+function timeLimitMin(){const c=G.cfg.time;if(c&&c!=='default')return +c;if(G.mode==='arena'&&G.mods.royale)return 30;if(G.mode==='gridlock'&&G.mods.duel)return 30;return TIME_DEFAULT[G.mode]||0;}
+
+/* ================= Round engine: Disaster Run + Murder Mystery ================= */
+let cops=[],dmc=new Map();
+const nodeOfP=p=>{if(p.seg!=null){const sg=Graph.segs[p.seg],A=Graph.nodes.get(sg.a),B=Graph.nodes.get(sg.b);return hyp(p.sx-A.x,p.sy-A.y)<hyp(p.sx-B.x,p.sy-B.y)?A.id:B.id;}return Graph.nearNode(p.sx,p.sy).id;};
+function copReplan(ps){const t=now(),by=new Map();
+  for(const c of cops){let b=null;for(const p of ps){const dd=hyp(p.sx-c.x,p.sy-c.y);if(!b||dd<b.d)b={p,d:dd};}c.tg=b.p.id;c.td=b.d;if(!by.has(b.p.id))by.set(b.p.id,[]);by.get(b.p.id).push(c);}
+  for(const[id,list]of by){const p=P.get(id),cl=clsOf(p.bike);list.sort((a,b)=>a.td-b.td);
+    let js=[];if(cl!=='open'&&p.seg!=null)js=Graph.walk(p.sx,p.sy,p.seg,p.hdg||0,3,cl==='foot').js;
+    list.forEach((c,i)=>{const role=['chase','cut','cut2','chase'][i%4];c.role=role;c.free=cl==='open';c.ap=cl==='foot';c.v=PROFILE[cl].stealth*.75/3.6;   // always slower than the class's hidden speed
+      if(c.free){const lead=role==='chase'?0:role==='cut'?8:16,h=(p.hdg||0)*D2R,v=Math.max(0,(p.spd||0)/3.6);c.gx=p.sx+Math.sin(h)*v*lead;c.gy=p.sy+Math.cos(h)*v*lead;c.wasFree=true;}
+      else{if(c.wasFree){const n=Graph.nearNode(c.x,c.y);c.from=n.id;c.to=Graph.edgesFor(n,c.ap)[0].to;c.s=0;c.wasFree=false;}
+        const nid=(role==='chase'||!js.length)?nodeOfP(p):js[role==='cut'?0:Math.min(1,js.length-1)],key=nid+'|'+c.ap,ca=dmc.get(key);   // cutters aim at the junctions ahead of you
+        if(!ca||t-ca.at>3000)dmc.set(key,{at:t,m:Graph.distMap(nid,c.ap)});c.dm=dmc.get(key).m;}});}}
+function moveCop(c,dt){
+  if(c.free){const dx=c.gx-c.x,dy=c.gy-c.y,d=hyp(dx,dy)||1,st=Math.min(d,c.v*dt);c.x+=dx/d*st;c.y+=dy/d*st;return;}
+  let d=c.v*dt;
+  while(d>0){const A=Graph.nodes.get(c.from),B=Graph.nodes.get(c.to),rem=hyp(B.x-A.x,B.y-A.y)-c.s;
+    if(d<rem){c.s+=d;d=0;}
+    else{d-=Math.max(rem,0);const adj=Graph.edgesFor(B,c.ap);let opts=adj.filter(e=>e.to!==c.from);if(!opts.length)opts=adj;let best=opts[0];
+      if(c.dm){let bv=1e18;for(const e of opts){const v=c.dm.has(e.to)?c.dm.get(e.to):1e17;if(v<bv){bv=v;best=e;}}}else best=pick(opts);
+      c.from=c.to;c.to=best.to;c.s=0;}}
+  const A=Graph.nodes.get(c.from),B=Graph.nodes.get(c.to),L=hyp(B.x-A.x,B.y-A.y)||1;c.x=A.x+(B.x-A.x)*c.s/L;c.y=A.y+(B.y-A.y)*c.s/L;}
+const out_=(p,g,t,d,msg,sfx)=>{g.out=true;g.surv=(t-d.rStart)/1000;if(msg)H.say(p.id,msg,{pri:3,sfx:sfx||'derez'});};
+
+const DIS={
+  murderer:{name:'Murderer',len:90,w:1.5,
+    intro:'One murderer hunts everyone else and can see every victim. Anyone still standing earns more the more victims fall.',
+    start(d){const rs=roster().filter(p=>G.pl[p.id]),m=shuffle(rs).sort((a,b)=>(G.pl[a.id].mt||0)-(G.pl[b.id].mt||0))[0];
+      rs.forEach(p=>{G.pl[p.id].role=p.id===m.id?'murderer':'victim';});G.pl[m.id].mt=(G.pl[m.id].mt||0)+1;d.r={m:m.id,kills:0,n:rs.length-1};
+      H.say(m.id,'You are the murderer. Every victim is on your map. Get within '+PROX.vip+' metres of a victim and you stab instantly. Points per catch.',{pri:3});
+      H.say({role:'victim'},'You are a victim. The murderer can see you. Survivors score more for every victim who falls.',{pri:3});},
+    tick(dt,t,d){const m=P.get(d.r.m);if(!m){d.done=true;return;}const vs=live().filter(p=>rl(p.id)==='victim'&&!G.pl[p.id].out);let near=null;
+      for(const v of vs){const dd=pd(m,v);if(!near||dd<near.d)near={v,d:dd};
+        if(H.hold('mk'+v.id,dd<PROX.vip,dt)>=STAB_S){out_(v,G.pl[v.id],t,d,'You were caught.');d.r.kills++;H.say('all',v.name+' was caught.',{pri:2});continue;}
+        if(dd<150&&H.closing('mc'+v.id,dd)&&H.cool('mw'+v.id,10))H.say(v.id,'Warning: murderer within '+Math.round(dd/10)*10+' metres.',{pri:3});}
+      if(near&&H.cool('mn',20))H.say(m.id,'Nearest victim '+Math.round(near.d/10)*10+' metres at your '+clockDir(m,near.v)+'.',{pri:2});
+      if(!live().filter(p=>rl(p.id)==='victim'&&!G.pl[p.id].out).length)d.done=true;},
+    score(p,g,d){const per=100*d.r.kills/Math.max(1,d.r.n);return g.role==='murderer'?per:(g.out?0:per);},   // murderer: linear per kill. Survivors: the same, only if still standing. Caught: nothing.
+    vis(p,v){if(v&&rl(v.id)==='murderer'&&rl(p.id)==='victim')return{show:true};},
+    hud(g,d){return g.out?'Caught. Spectating this round.':g.role==='murderer'?'Murderer: catch victims ('+d.r.kills+' of '+d.r.n+')':'Victim: stay alive. Survivors score for every victim caught ('+d.r.kills+' so far)';}},
+
+  tornado:{name:'Tornado',len:100,w:1,
+    intro:'A fast, erratic tornado crosses the town. Nobody can outrun it, so read the warnings and get off its line.',
+    start(d){const rs=roster(),ss=rs.map(p=>PROFILE[clsOf(p.bike)].stealth),fast=Math.max(...ss)/40,slow=Math.min(...ss)/40;   // faster than the fastest rider, sized for the slowest
+      const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<G.arena.r*.9&&rs.every(q=>hyp(q.sx-n.x,q.sy-n.y)>250)))[0]||pick(Graph.junc);
+      d.r={x:c.x,y:c.y,rad:Math.round(clamp(130*slow,60,130)),hd:Math.random()*360,sp:12*fast,fast,next:0};H.say('all','Tornado touching down at '+c.label+'.',{pri:2});},
+    tick(dt,t,d){const rs=live().filter(p=>!G.pl[p.id].out);if(!rs.length){d.done=true;return;}const T=d.r;
+      if(t>=T.next){T.next=t+5000+Math.random()*5000;                                            // fate: it picks a new heading every 5-10 s
+        if(Math.random()<.5){const v=pick(rs);T.hd=bearingXY(v.sx-T.x,v.sy-T.y);}else T.hd=Math.random()*360;
+        T.sp=(11+Math.random()*9)*T.fast;H.say('all','Tornado changing course. Now heading '+cardinal(T.hd)+'.',{pri:2});}
+      T.x+=Math.sin(T.hd*D2R)*T.sp*dt;T.y+=Math.cos(T.hd*D2R)*T.sp*dt;
+      const k=hyp(T.x,T.y);if(k>G.arena.r*.95){T.hd=bearingXY(-T.x,-T.y)+(Math.random()*40-20);T.x*=G.arena.r*.95/k;T.y*=G.arena.r*.95/k;}
+      const ux=Math.sin(T.hd*D2R),uy=Math.cos(T.hd*D2R);
+      for(const p of rs){const rx=p.sx-T.x,ry=p.sy-T.y,q=hyp(rx,ry),inn=q<T.rad,along=rx*ux+ry*uy,perp=Math.abs(rx*uy-ry*ux);
+        if(H.hold('tw'+p.id,inn,dt)>=3){out_(p,G.pl[p.id],t,d,'Swept away.');H.say('all',p.name+' was swept away.',{pri:2});continue;}
+        if(inn){if(H.cool('ti'+p.id,4))H.say(p.id,'In the funnel. Get out now.',{pri:3,sfx:'alarm'});}
+        else if(along>0&&perp<T.rad+40&&along/T.sp<14){if(H.cool('tl'+p.id,6))H.say(p.id,'Tornado on your line in '+Math.max(1,Math.round(along/T.sp))+' seconds. Move off its path.',{pri:3,sfx:'alarm'});}   // the strategy part: step sideways
+        else if(q<T.rad+300&&H.cool('tn'+p.id,12))H.say(p.id,'Tornado '+Math.round(q/10)*10+' metres at your '+clockDir(p,{sx:T.x,sy:T.y})+'.',{pri:2});}},
+    score(p,g,d){return 100*clamp((g.out?g.surv:d.len)/d.len,0,1);},
+    hud(g){return g.out?'Swept away. Spectating this round.':'Nobody outruns it. Listen for "on your line" and get off its path.';}},
+
+  meteor:{name:'Meteor Strike',len:110,w:1,intro:'Meteors land near where you are heading. Each one is announced 15 seconds ahead. Change your route and stay out of the blast.',
+    start(d){d.r={strikes:[],next:0,at:[3,28,53,78]};},
+    tick(dt,t,d){const e=(t-d.rStart)/1000,R=d.r;
+      if(R.next<R.at.length&&e>=R.at[R.next]){R.next++;const v=pick(live());
+        if(v){const sp=(v.spd||0)/3.6,mv=sp>.6?sp*15:0,h=(v.hdg||0)*D2R;let x=v.sx+Math.sin(h)*mv+(Math.random()*2-1)*30,y=v.sy+Math.cos(h)*mv+(Math.random()*2-1)*30;
+          const k=hyp(x,y);if(k>G.arena.r*.95){x*=G.arena.r*.95/k;y*=G.arena.r*.95/k;}
+          const n=Graph.nearJunction(x,y,300);R.strikes.push({x,y,rad:100,hitAt:t+15000,done:false});
+          H.say('all','Meteor inbound. Impact in 15 seconds near '+(n?n.label:'the grid')+'. Blast radius 100 metres.',{pri:3,sfx:'alarm'});}}
+      for(const m of R.strikes)if(!m.done&&t>=m.hitAt){m.done=true;Sfx.boom();
+        for(const p of live())if(hyp(p.sx-m.x,p.sy-m.y)<m.rad){G.pl[p.id].hits=(G.pl[p.id].hits||0)+1;H.say(p.id,'Direct hit.',{pri:3,sfx:'boom'});}}
+      R.strikes=R.strikes.filter(m=>t<m.hitAt+3000);},
+    score(p,g){return 100-35*(g.hits||0);},
+    hud(g){return 'Hits taken: '+(g.hits||0)+'. Strikes land near where you are heading, so change it up.';}},
+
+  quake:{name:'Earthquake',len:100,w:1,
+    intro:'Ride to earn points. When a quake is called, slow below 5 kilometres per hour within 12 seconds and hold still. Move during a quake and you are out for the round.',
+    start(d){d.r={qs:[{warn:15+Math.random()*15,win:12,hold:12,st:0},{warn:62+Math.random()*8,win:12,hold:12,st:0}],max:100-24};},
+    tick(dt,t,d){const e=(t-d.rStart)/1000,inHold=d.r.qs.some(q=>q.st===2);
+      for(const p of live()){const g=G.pl[p.id];if(!g.out&&!inHold&&(p.spd||0)>=5)g.ride=(g.ride||0)+dt;}            // points come from time spent riding
+      d.r.qs.forEach((q,i)=>{const dl=q.warn+q.win,eh=dl+q.hold;
+        if(q.st===0&&e>=q.warn){q.st=1;H.say('all','Earthquake warning. When it is safe, slow below 5 kilometres per hour within 12 seconds, then hold still.',{pri:3,sfx:'alarm'});}
+        if(q.st===1&&e>=dl){q.st=2;for(const p of live()){const g=G.pl[p.id];if(!g.out&&(p.spd||0)>=5)out_(p,g,t,d,'Caught moving. You are out for this round.');}H.say('all','Hold still now.',{pri:2});}
+        if(q.st===2)for(const p of live()){const g=G.pl[p.id];if(!g.out&&H.hold('qm'+i+p.id,(p.spd||0)>=5,dt)>=1)out_(p,g,t,d,'You moved. You are out for this round.');}
+        if(q.st===2&&e>=eh){q.st=3;H.clearHolds('qm'+i);H.say('all','Quake over. Ride on.',{pri:2});}});
+      if(live().every(p=>G.pl[p.id].out))d.done=true;},
+    score(p,g,d){return 100*clamp((g.ride||0)/d.r.max,0,1);},
+    hud(g,d){if(g.out)return'Out. Ride time banked: '+Math.round(g.ride||0)+' s';const e=(now()-d.rStart)/1000,q=d.r.qs.find(x=>x.st===1||x.st===2);
+      const st=q?(q.st===1?'SLOW below 5 km/h within '+Math.max(0,Math.ceil(q.warn+q.win-e))+' s':'HOLD STILL for '+Math.max(0,Math.ceil(q.warn+q.win+q.hold-e))+' s'):'Quake can strike any moment. Keep riding.';
+      return'Ride time '+Math.round(g.ride||0)+' s. '+st;}},
+
+  flood:{name:'Flood',len:100,w:1.25,intro:'Floodwater is rising. Reach high ground. There is one spot fewer than there are riders, and one rider per spot.',
+    start(d){const rs=roster(),k=clamp(rs.length-1,1,6),spots=[];
+      for(let i=0;i<k;i++){const a=pick(rs),c=shuffle(Graph.junc.filter(n=>{const dd=hyp(n.x-a.sx,n.y-a.sy);return dd>150&&dd<600&&hyp(n.x,n.y)<G.arena.r*.95&&spots.every(q=>hyp(q.x-n.x,q.y-n.y)>120);}))[0]||pick(Graph.junc);spots.push({x:c.x,y:c.y,label:c.label,by:null});}
+      d.r={spots};
+      for(const p of rs){const n=spots.reduce((b,q)=>!b||hyp(p.sx-q.x,p.sy-q.y)<hyp(p.sx-b.x,p.sy-b.y)?q:b,null);
+        H.say(p.id,'Nearest high ground: '+n.label+', '+Math.round(hyp(p.sx-n.x,p.sy-n.y)/10)*10+' metres at your '+clockDir(p,{sx:n.x,sy:n.y})+'.',{pri:2});}},
+    tick(dt,t,d){const S=d.r.spots;
+      for(const p of live()){const g=G.pl[p.id];if(g.claim)continue;
+        for(const q of S)if(!q.by&&hyp(p.sx-q.x,p.sy-q.y)<40){q.by=p.id;g.claim=true;H.say(p.id,'High ground secured.',{pri:3,sfx:'ping'});
+          const left=S.filter(x=>!x.by).length;H.say('all',p.name+' secured high ground. '+left+' spot'+(left===1?'':'s')+' left.',{pri:2});break;}}
+      if(S.every(q=>q.by))d.done=true;},
+    score(p,g){return g.claim?100:0;},
+    hud(g,d){const left=d.r.spots.filter(q=>!q.by).length;return g.claim?'On high ground. Safe this round.':'Reach a free high ground spot. '+left+' left.';}},
+
+  police:{name:'Police Raid',len:100,w:1.25,
+    intro:'Police units are hunting every rider. They are slower than you but they work together to cut off your exits. Survivors score for every rider caught.',
+    start(d){const rs=roster().filter(p=>G.pl[p.id]),k=clamp(rs.length+3,4,10);cops=[];dmc=new Map();
+      const spots=[];for(let tr=0;tr<600&&spots.length<k;tr++){const a=pick(rs),n=pick(Graph.junc),dd=hyp(n.x-a.sx,n.y-a.sy);   // start 200-450 m from a rider so the raid bites inside one round
+        if(dd<200||dd>450||hyp(n.x,n.y)>G.arena.r*.95||rs.some(q=>hyp(q.sx-n.x,q.sy-n.y)<200)||spots.some(q=>hyp(q.x-n.x,q.y-n.y)<120))continue;spots.push(n);}
+      while(spots.length<k)spots.push(pick(Graph.junc));
+      for(const n of spots)cops.push({x:n.x,y:n.y,from:n.id,to:Graph.edgesFor(n,false)[0].to,s:0,ap:false,free:false,v:8,role:'chase',tg:null,td:0,dm:null,gx:n.x,gy:n.y,wasFree:false});
+      d.r={cops:[],caught:0,n:rs.length,rp:0};
+      H.say('all','Police raid. '+k+' units on the grid. They share your speed band minus a margin, so ride smoothly and avoid dead ends.',{pri:2,sfx:'alarm'});},
+    tick(dt,t,d){const ps=live().filter(p=>!G.pl[p.id].out);if(!ps.length){d.done=true;return;}
+      if(t>=d.r.rp){d.r.rp=t+1500;copReplan(ps);}
+      for(const c of cops)moveCop(c,dt);
+      d.r.cops=cops.map(c=>({x:Math.round(c.x),y:Math.round(c.y)}));
+      for(const p of ps){let near=null,cnt=0,caught=false;
+        cops.forEach((c,i)=>{const dd=hyp(p.sx-c.x,p.sy-c.y);if(dd<250)cnt++;if(!near||dd<near.d)near={c,d:dd};
+          if(!caught&&H.hold('pc'+i+p.id,dd<PROX.vip,dt)>=2){caught=true;out_(p,G.pl[p.id],t,d,'Busted. You are out for this round.');d.r.caught++;H.say('all',p.name+' was busted.',{pri:2});}});
+        if(caught)continue;
+        if(near&&near.d<200&&H.closing('pn'+p.id,near.d)&&H.cool('pw'+p.id,8))H.say(p.id,'Police unit '+Math.round(near.d/10)*10+' metres at your '+clockDir(p,{sx:near.c.x,sy:near.c.y})+'.',{pri:2});
+        if(cnt>=2&&H.cool('pm'+p.id,15))H.say(p.id,'Warning: several units closing. Look for an exit.',{pri:3});}},
+    score(p,g,d){return g.out?0:100*d.r.caught/Math.max(1,d.r.n);},
+    hud(g,d){return g.out?'Busted. Spectating this round.':'Police units: '+cops.length+'. Caught so far: '+d.r.caught+'. Survivors score for every rider caught.';}},
+
+  hunt:{name:'Hunt',len:120,w:1.5,lenMM:240,ok:n=>n>=3,
+    intro(){return 'Everyone has one target and one hunter. Catch your target to take over their target. '+(G.mode==='disaster'?'You can see your target on the map all round.':'You only get distance call-outs and fuzzy location pings.');},
+    start(d){const rs=shuffle(roster().filter(p=>G.pl[p.id])),tg={};rs.forEach((p,i)=>{tg[p.id]=rs[(i+1)%rs.length].id;});d.r={tg,n:rs.length};
+      for(const p of rs)H.say(p.id,'Your target is '+nm(tg[p.id])+'. '+(G.mode==='disaster'?'They are on your map the whole round. ':'')+'Get within '+PROX.vip+' metres and you stab instantly. Someone is hunting you.',{pri:3});},
+    tick(dt,t,d){const R=d.r,al=live().filter(p=>!G.pl[p.id].out);if(al.length<=1){d.done=true;return;}
+      for(const h of al){if(G.pl[h.id].out)continue;let tid=R.tg[h.id],T=P.get(tid);
+        if(!T||G.pl[tid].out){const nx=R.tg[tid];tid=(nx&&nx!==h.id&&P.get(nx)&&!G.pl[nx].out)?nx:al.find(x=>x.id!==h.id&&!G.pl[x.id].out).id;R.tg[h.id]=tid;T=P.get(tid);}
+        const dd=pd(h,T);
+        if(H.hold('hc'+h.id+tid,dd<PROX.vip,dt)>=STAB_S){out_(T,G.pl[tid],t,d,'You were hunted down.');G.pl[h.id].kills=(G.pl[h.id].kills||0)+1;R.tg[h.id]=R.tg[tid];
+          H.say('all',T.name+' was hunted down.',{pri:2});H.say(h.id,'Target eliminated.',{pri:3,sfx:'ping'});continue;}
+        if(H.cool('hd'+h.id,20))H.say(h.id,'Target '+Math.round(dd/10)*10+' metres at your '+clockDir(h,T)+'.',{pri:2});
+        if(G.mode!=='disaster'&&H.cool('hp'+h.id,45))H.ping(T,h.id,250,'Your target');   // the Murder Mystery version has no constant tracking
+        if(dd<120&&H.closing('hw'+tid,dd)&&H.cool('hw'+tid,10))H.say(tid,'Warning: someone is closing in, '+Math.round(dd/10)*10+' metres.',{pri:3});}},
+    vis(p,v){if(G.mode==='disaster'&&v&&G.d.r&&G.d.r.tg&&G.d.r.tg[v.id]===p.id)return{show:true};},   // Disaster Run: hunters track their target constantly
+    score(p,g,d){return 70*(g.kills||0)/Math.max(1,d.r.n-1)+(g.out?0:30);},
+    hud(g,d){return g.out?'Hunted down. Spectating.':'Hunt '+nm(d.r.tg[me.id])+(G.mode==='disaster'?' (tracked)':'')+'. Kills '+(g.kills||0)+'. Someone is hunting you.';}},
+
+  mystery:{name:'Murder Mystery',len:240,w:1.5,lenMM:240,ok:n=>n>=3,
+    intro:'Hidden roles. One murderer, one revealed sheriff, everyone else innocent. Find the killer before they find you.',
+    start(d){const rs=shuffle(roster().filter(p=>G.pl[p.id])),n=rs.length,nMur=n>=7?2:1;
+      const ms=rs.slice().sort((a,b)=>(G.pl[a.id].mt||0)-(G.pl[b.id].mt||0)).slice(0,nMur),rest=rs.filter(p=>!ms.includes(p)),sh=rest.slice().sort((a,b)=>(G.pl[a.id].st||0)-(G.pl[b.id].st||0))[0];
+      rs.forEach(p=>{G.pl[p.id].role=ms.includes(p)?'murderer':p===sh?'sheriff':'innocent';});
+      ms.forEach(m=>{G.pl[m.id].mt=(G.pl[m.id].mt||0)+1;});G.pl[sh.id].st=(G.pl[sh.id].st||0)+1;
+      d.r={ms:ms.map(m=>m.id),sh:sh.id,kills:0,n:n-nMur,zones:[],ready:0,nextEv:now()+45000,win:null,sheriffKill:false};
+      for(const m of ms)H.say(m.id,'You are the murderer.'+(nMur>1?' Your partner is '+nm(ms.find(x=>x.id!==m.id).id)+'.':'')+' Get within '+PROX.vip+' metres of an innocent and you stab instantly. Stay hidden.',{pri:3});
+      H.say(sh.id,'You are the Sheriff. Shout fire to shoot the murderer. Shoot an innocent and you both go down. Your gun cycles for 25 seconds.',{pri:3});
+      H.say({role:'innocent'},'You are innocent. Find the murderer, stay alive, and do not trust anyone.',{pri:3});
+      H.say('all',sh.name+' is the Sheriff.',{pri:2});},
+    tick(dt,t,d){const R=d.r,rs=live(),mur=rs.filter(p=>rl(p.id)==='murderer'&&!G.pl[p.id].out),inn=rs.filter(p=>rl(p.id)!=='murderer'&&!G.pl[p.id].out);
+      R.zones=R.zones.filter(z=>z.until>t);
+      for(const m of mur)for(const v of inn){
+        if(G.pl[v.id].out)continue;
+        if(H.hold('mm'+m.id+v.id,pd(m,v)<PROX.vip,dt)>=STAB_S){out_(v,G.pl[v.id],t,d,'You were killed.');R.kills++;G.pl[m.id].kills=(G.pl[m.id].kills||0)+1;
+          R.zones.push({x:v.sx,y:v.sy,r:200,until:t+20000});H.say('all',v.name+' was killed near '+stName(v)+'. Investigate.',{pri:3,sfx:'alarm'});}}
+      if(t>=R.nextEv&&!G.pl[R.sh].out&&mur.length){R.nextEv=t+60000;H.ping(pick(mur),R.sh,300,'A suspect');}      // evidence for the sheriff
+      const mLeft=live().filter(p=>rl(p.id)==='murderer'&&!G.pl[p.id].out).length,iLeft=live().filter(p=>rl(p.id)!=='murderer'&&!G.pl[p.id].out).length;
+      if(!mLeft){R.win='innocent';d.done=true;}else if(!iLeft){R.win='murderer';d.done=true;}},
+    act(p,a){const d=G.d,R=d.r;if(a!=='fire'||rl(p.id)!=='sheriff'||G.pl[p.id].out)return;const t=now();
+      if(t<R.ready){if(H.cool('shc',3))H.say(p.id,'Gun cycling.');return;}R.ready=t+25000;
+      const foes=live().filter(q=>q.id!==p.id&&!G.pl[q.id].out);let aim=aimOf(p);if(G.mods.assist)aim=assistAim(p,aim,80,foes);
+      let best=null;for(const q of foes){const dx=q.sx-p.sx,dy=q.sy-p.sy,dd=hyp(dx,dy);if(dd>80||dd<.5)continue;const rel=Math.abs(angDiff(bearingXY(dx,dy),aim))*D2R,along=dd*Math.cos(rel),perp=Math.abs(dd*Math.sin(rel)),sl=Math.min(((p.ac||5)+(q.ac||5))/2,GPS_SLACK_CAP);
+        if(along>0&&perp<=2+sl&&(!best||dd<best.d))best={q,d:dd};}
+      const n=Graph.nearJunction(p.sx,p.sy,300);R.zones.push({x:p.sx,y:p.sy,r:150,until:t+10000});
+      H.say('all','Shot fired near '+(n?n.label:stName(p))+'.',{pri:3,sfx:'boom'});
+      if(!best){H.say(p.id,'Missed.',{pri:2});return;}
+      const q=best.q;
+      if(rl(q.id)==='murderer'){out_(q,G.pl[q.id],t,d,'You were shot.');R.sheriffKill=true;H.say('all','The murderer was shot. '+q.name+' is down.',{pri:3});}
+      else{out_(q,G.pl[q.id],t,d,'You were shot by the Sheriff.');out_(p,G.pl[p.id],t,d,'You shot an innocent. You are down.');H.say('all','The Sheriff shot an innocent and is down too.',{pri:3});}},
+    score(p,g,d){const R=d.r,win=R.win||'innocent';
+      if(g.role==='murderer')return win==='murderer'?100:Math.min(60,20*(g.kills||0));
+      return win==='innocent'?(g.out?40:100):0;},
+    hud(g,d){const R=d.r;if(g.out)return'You are out. Spectating this round.';const rdy=now()>=R.ready;
+      return g.role==='murderer'?'Murderer: kill unseen ('+(g.kills||0)+' so far). Innocents left: '+live().filter(p=>rl(p.id)!=='murderer'&&!G.pl[p.id].out).length
+        :g.role==='sheriff'?'Sheriff: shoot the murderer. Gun '+(rdy?'ready':'cycling '+Math.ceil((R.ready-now())/1000)+' s')+'. Shooting an innocent costs you both.'
+        :'Innocent: find the murderer and stay alive. Sheriff: '+nm(R.sh);}}
+};
+const DIS_POOL=['murderer','tornado','meteor','quake','flood','police','hunt'];
+const disSort=rs=>rs.slice().sort((a,b)=>G.pl[b.id].score-G.pl[a.id].score||G.pl[b.id].tb-G.pl[a.id].tb);
+function disBegin(t){const d=G.d,n=roster().filter(p=>G.pl[p.id]).length;d.round++;let k=null;
+  for(let i=0;i<30&&k===null;i++){if(!d.bag.length)d.bag=shuffle(d.pool);const c=d.bag.pop();
+    if(c===d.prev&&d.pool.length>1&&d.bag.length){d.bag.unshift(c);continue;}                    // never the same round twice in a row
+    if(DIS[c].ok&&!DIS[c].ok(n))continue;k=c;}
+  if(k===null)k=d.pool.find(c=>!DIS[c].ok||DIS[c].ok(n))||d.pool[0];
+  d.cur=k;d.phase='play';d.rStart=t;d.len=(G.mode==='mystery'&&DIS[k].lenMM)||DIS[k].len;d.rEnd=t+d.len*1000;d.done=false;d.r={};H.reset();
+  for(const p of roster()){const g=G.pl[p.id];if(g){Object.assign(g,{out:false,surv:0,rs:0,role:undefined,hits:0,claim:false,ride:0,kills:0});}}
+  DIS[k].start(d,t);
+  H.say('all','Round '+d.round+' of '+d.rounds+': '+DIS[k].name+'. '+(DIS[k].w>1?'Worth '+(DIS[k].w===1.5?'one and a half':'one and a quarter')+' times points. ':'')+(typeof DIS[k].intro==='function'?DIS[k].intro():DIS[k].intro),{pri:3,sfx:'alarm'});}
+function disFinish(t,forceEnd){const d=G.d,D=DIS[d.cur],rs=roster().filter(p=>G.pl[p.id]);
+  for(const p of rs){const g=G.pl[p.id];if(!g.out)g.surv=d.len;g.rs=Math.round(clamp(D.score(p,g,d),0,100)*(D.w||1));g.score+=g.rs;g.tb+=g.surv||0;}
+  const top=disSort(rs);d.board=top.map(p=>({id:p.id,n:p.name,s:G.pl[p.id].score,rs:G.pl[p.id].rs}));
+  d.phase='break';d.next=t+12000;d.prev=d.cur;d.cur=null;d.r={};cops=[];
+  if(forceEnd||d.round>=d.rounds)return disEnd(top);
+  H.say('all','Round '+d.round+' complete. '+top[0].name+' leads with '+G.pl[top[0].id].score+' points.',{pri:2});}
+function disEnd(top){const pod=top.slice(0,3);H.end('Podium: '+pod.map((p,i)=>(i+1)+'. '+p.name+' '+G.pl[p.id].score).join(', '),top.map((p,i)=>(i+1)+'. '+p.name+' '+G.pl[p.id].score+' pts'));}
+function roundSetup(pool,label){roster().forEach(p=>G.pl[p.id]={alive:true,score:0,tb:0,mt:0,st:0,rs:0,out:false,kills:0});
+  G.d={rounds:+G.cfg.rounds||6,round:0,bag:[],pool,phase:'break',next:G.startAt+8000,cur:null,prev:null,r:{},board:[],dur:1e12};cops=[];
+  H.say('all',label+' '+G.d.rounds+' rounds. Stay legal, ride smart. First round in a few seconds.',{pri:2});}
+const ROUND_BASE={
+  tick(dt){const t=now(),d=G.d;
+    if(t-G.t0>d.dur){if(d.phase==='play')return disFinish(t,true);return disEnd(disSort(roster().filter(p=>G.pl[p.id])));}
+    if(d.phase==='break'){if(t>=d.next&&d.round<d.rounds)disBegin(t);return;}
+    DIS[d.cur].tick(dt,t,d);if(d.done||t>=d.rEnd)disFinish(t);},
+  vis(p,v){const g=G.pl[p.id]||{};if(g.out)return{hide:true};const D=G.d&&G.d.cur&&DIS[G.d.cur];return D&&D.vis?D.vis(p,v):undefined;},
+  act(p,a){const D=G.d.cur&&DIS[G.d.cur];if(D&&D.act&&G.d.phase==='play')D.act(p,a);},
+  acts(){const g=G.pl[me.id]||{};return(G.d.cur==='mystery'&&g.role==='sheriff'&&!g.out)?['fire']:[];},
+  hud(g){const d=G.d,t=now();
+    if(d.phase==='break'){const i=d.board.findIndex(b=>b.id===me.id);return[d.round?'Round '+d.round+' of '+d.rounds+' done':'Get ready',(d.round?'You are '+(i>=0?(i+1)+(['st','nd','rd'][i]||'th'):'unranked')+' with '+(g.score||0)+' pts. ':'')+'Next in '+Math.max(0,Math.ceil((d.next-t)/1000))+' s'];}
+    return['Round '+d.round+'/'+d.rounds+' '+DIS[d.cur].name+' | '+(g.score||0)+' pts',DIS[d.cur].hud(g,d)+' | '+mmss(d.rEnd-t)+' left'];}
+};
+const MODES={
+tron:{name:'Tron Circuit',min:2,
+  blurb:'Your path leaves a 120-second light wall. Ride into anyone else\'s and you are de-rezzed. Last rider on the grid wins.',
+  setup(){roster().forEach(p=>G.pl[p.id]={alive:true});H.say('all','Light cycles online. Cross a rival\'s wall and you are out.');},
+  tick(){const t=now();
+    for(const p of alive()){if(p.spd<5)continue;
+      for(const q of P.values()){if(q.id===p.id)continue;const tr=Trails.get(q.id);
+        if(tr&&Trails.hit(tr,p.sx,p.sy,t)){G.pl[p.id].alive=false;H.say(p.id,'De-rezzed. Connection terminated.',{pri:3,sfx:'derez'});H.say('all',p.name+' was de-rezzed.');break;}}}
+    const left=alive();if(left.length<=1&&live().length>1)H.end(left[0]?left[0].name+' survives the grid':'Everyone was de-rezzed');
+    else if(now()-G.t0>G.d.dur)H.end('Time up. '+left.length+' riders still on the grid',left.map(p=>p.name));},
+  hud(g){return g.alive===false?['De-rezzed','Spectating']:['Light wall: 120 s',alive().length+' riders left. Keep a gap behind rivals.'];}},
+
+outbreak:{name:'Outbreak',min:2,mods:[{k:'shrink',label:'Shrinking safe zone',info:'The safe zone shrinks every 90 s. Survivors caught outside are exposed to the infected for 15 s.'}],
+  blurb:'One rider is infected. Stay within '+PROX.infect+' m of a survivor for 3 s and they turn. Survivors win if the clock runs out. Hidden survivors are pinged to the infected as a rough search zone every minute.',
+  setup(){const rs=roster(),z=pick(rs).id;
+    rs.forEach(p=>G.pl[p.id]={alive:true,role:p.id===z?'infected':'survivor',team:p.id===z?'infected':'survivor'});
+    G.d={dur:600000,zone:{x:0,y:0,r:G.arena.r},next:null,k:0,nextPing:G.startAt+PING.outbreak.first*1000};
+    H.say(z,'You are Patient Zero. Stay close to survivors to turn them.',{pri:2});H.say({role:'survivor'},'You are a survivor. Keep away from the infected.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,inf=live().filter(p=>rl(p.id)==='infected'),sur=live().filter(p=>rl(p.id)==='survivor');
+    for(const s of sur){for(const i of inf){const dd=pd(i,s);
+      if(H.hold('inf'+i.id+s.id,dd<PROX.infect,dt)>=3){G.pl[s.id].role='infected';G.pl[s.id].team='infected';H.say('all',s.name+' has been infected. Clear the area.',{pri:2});break;}
+      if(dd<120&&H.closing('c'+i.id+s.id,dd)&&H.cool('ap'+i.id+s.id,10))H.say(s.id,'Warning: Infected rider approaching from your '+clockDir(s,i)+'.',{pri:2});}}
+    if(t>=d.nextPing){const hid=sur.filter(x=>H.hidden(x));
+      if(hid.length){const v=hid.reduce((b,x)=>((G.pl[x.id].lastPing||0)<(G.pl[b.id].lastPing||0)?x:b),hid[0]);G.pl[v.id].lastPing=t;H.ping(v,{role:'infected'},PING.outbreak.r,'A survivor');d.nextPing=t+PING.outbreak.every*1000;}
+      else d.nextPing=t+10000;}
+    if(G.mods.shrink){const z=d.zone;
+      if(!d.next&&z.r>151&&t-G.t0>=(d.k+1)*90000-30000){const r2=Math.max(150,z.r*.7),ang=Math.random()*2*Math.PI,off=(z.r-r2)*Math.random()*.9;
+        d.next={x:z.x+Math.sin(ang)*off,y:z.y+Math.cos(ang)*off,r:r2,dir:off<40?'Central':cardinal(bearingXY(Math.sin(ang)*off,Math.cos(ang)*off))};
+        H.say('all','Arena shrinking in 30 seconds. Relocating to '+d.next.dir+' Sector.',{pri:2});}
+      if(d.next&&t-G.t0>=(d.k+1)*90000){d.zone=d.next;d.next=null;d.k++;
+        for(const s of live().filter(p=>rl(p.id)==='survivor')){if(hyp(s.sx-d.zone.x,s.sy-d.zone.y)>d.zone.r){G.pl[s.id].exposeUntil=t+15000;H.say(s.id,'Warning: Outside safe zone. Position exposed.',{pri:3,sfx:'alarm'});}}}}
+    if(!sur.length)H.end('The infected win');else if(t-G.t0>d.dur)H.end('Survivors win',[sur.length+' survived']);},
+  vis(p,v){const g=G.pl[p.id]||{};if(g.exposeUntil>now()&&v&&rl(v.id)==='infected')return{show:true,flash:'white'};},
+  hud(g){const s=live().filter(p=>rl(p.id)==='survivor').length,left='';
+    const z=G.mods.shrink&&G.d.next?' Zone moves soon.':'';
+    return g.role==='infected'?['Infected','Stay within '+PROX.infect+' m of a survivor for 3 s. '+s+' left. '+left+z+'. Ping in '+pingIn()+' s']:['Survivor','Avoid infected riders. '+s+' survivors. '+left+z];}},
+
+gridlock:{name:'Gridlock',min:2,mods:[
+  {k:'closures',label:'Road closures (hard)',info:'Every 60 s up to three intersections close for 75 s, with at most five closed at once and always a route left to the goal. Riding through one costs +30 s.'},
+  {k:'duel',label:'Free-for-all duels',info:'No shared destination. Riders roam hidden, with a rough location ping on one rider every 90 s. Within '+PROX.duel+' m, one can challenge and the other accepts. Duels go to the most efficient route, not the fastest rider. Losers are out.'}],
+  blurb:'Everyone races to one destination across town. Plain navigation by default. Add Road closures for a harder game.',
+  setup(){const rs=roster();if(rs.every(p=>clsOf(p.bike)==='open'))G.mods.closures=false;   // closures are intersection based, so not for Open class
+    rs.forEach(p=>G.pl[p.id]={alive:true,pen:0,wins:0});
+    G.d={closed:[],nextClose:G.startAt+60000,fin:{},duels:[],imm:{},dur:G.mods.duel?1800000:900000,nextPing:G.startAt+PING.duel.first*1000};
+    if(G.mods.duel)H.say('all','Free for all. Stay hidden. When a rival is close, say challenge. The best route wins, not top speed.',{pri:2});
+    else{const cx=rs.reduce((a,p)=>a+p.sx,0)/rs.length,cy=rs.reduce((a,p)=>a+p.sy,0)/rs.length;
+      G.d.dest=G.cfg.dest?fixedDest(G.cfg.dest):pickDest(cx,cy,G.arena.r*.5,G.arena.r*.95);H.say('all','Destination: '+G.d.dest.label+'.'+(G.mods.closures?' Intersections will close every 60 seconds. A route home always stays open.':''),{pri:2});}},
+  closeWave(t){const d=G.d,rs=alive();if(!rs.length)return;
+    const room=Math.min(3,5-d.closed.length);if(room<=0)return;
+    const starts=rs.filter(p=>clsOf(p.bike)!=='open').map(p=>Graph.nearNode(p.sx,p.sy).id),nodes=[...Graph.nodes.values()];if(!starts.length)return;
+    const blockFor=list=>{const b=new Set();for(const c of list)for(const n of nodes)if(hyp(n.x-c.x,n.y-c.y)<PROX.closed+15)b.add(n.id);return b;};
+    const ok=list=>{const b=blockFor(list);
+      if(G.mods.duel){const base=Graph.reach(starts[0],new Set()).size,r=Graph.reach(starts[0],b);return starts.every(s=>r.has(s))&&r.size>=base*.85;}
+      return starts.every(s=>Graph.reach(s,b).has(d.dest.id));};
+    const cands=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<G.arena.r*.95&&rs.every(p=>hyp(p.sx-n.x,p.sy-n.y)>150)&&(!d.dest||hyp(n.x-d.dest.x,n.y-d.dest.y)>200)&&d.closed.every(c=>hyp(c.x-n.x,c.y-n.y)>250)));
+    let added=0;
+    for(const n of cands){if(added>=room)break;
+      if(d.closed.some(c=>hyp(c.x-n.x,c.y-n.y)<250))continue;                  // keep closures spread out
+      const test=d.closed.concat([{x:n.x,y:n.y}]);if(!ok(test))continue;      // never cut off the goal
+      d.closed.push({id:n.id,x:n.x,y:n.y,label:n.label,until:t+75000});added++;
+      H.say('all','Route Update: '+n.label+' intersection is now CLOSED.',{pri:2});}},
+  tick(dt){const t=now(),d=G.d;
+    if(G.mods.closures){
+      if(t>=d.nextClose){d.nextClose+=60000;this.closeWave(t);}
+      d.closed=d.closed.filter(c=>c.until>t);
+      for(const p of alive()){if(clsOf(p.bike)==='open')continue;for(const c of d.closed)if(hyp(p.sx-c.x,p.sy-c.y)<PROX.closed&&p.spd>5&&H.cool('pen'+p.id+c.id,25)){G.pl[p.id].pen++;H.say(p.id,'Penalty warning: Navigating through restricted airspace.',{pri:3,sfx:'ping'});}}}
+    if(G.mods.duel)this.duelTick(dt);else this.raceTick();},
+  raceTick(){const t=now(),d=G.d;
+    for(const p of alive())if(d.fin[p.id]==null&&hyp(p.sx-d.dest.x,p.sy-d.dest.y)<PROX.finish){d.fin[p.id]=t-G.t0;H.say(p.id,'Destination reached.',{pri:2});H.say('all',p.name+' has arrived.');}
+    const rs=live();
+    if(rs.length&&rs.every(p=>d.fin[p.id]!=null)||t-G.t0>d.dur){
+      const rows=rs.map(p=>({n:p.name,s:d.fin[p.id]==null?Infinity:d.fin[p.id]+30000*G.pl[p.id].pen,pen:G.pl[p.id].pen})).sort((a,b)=>a.s-b.s);
+      H.end(rows[0]&&rows[0].s<Infinity?rows[0].n+' wins':'Time up',rows.map((r,i)=>(i+1)+'. '+r.n+' '+(r.s<Infinity?mmss(r.s)+(r.pen?' (incl. '+r.pen+' penalties)':''):'did not finish')));}},
+  duelTick(dt){const t=now(),d=G.d;
+    if(t>=d.nextPing){const inD=id=>d.duels.some(x=>x.st==='run'&&(x.a===id||x.b===id)),hid=alive().filter(x=>H.hidden(x)&&!inD(x.id));
+      if(hid.length){const v=hid.reduce((b,x)=>((G.pl[x.id].lastPing||0)<(G.pl[b.id].lastPing||0)?x:b),hid[0]);G.pl[v.id].lastPing=t;H.ping(v,{not:v.id},PING.duel.r,'A rider');d.nextPing=t+PING.duel.every*1000;}
+      else d.nextPing=t+10000;}
+    for(const du of d.duels.slice()){
+      if(du.st==='offer'){if(t>du.until){H.say(du.a,'Challenge expired.');d.duels.splice(d.duels.indexOf(du),1);}continue;}
+      for(const k of['a','b']){const p=P.get(du[k]);if(!p)continue;const L=du.last[k];if(L)du.dist[k]+=hyp(p.sx-L[0],p.sy-L[1]);du.last[k]=[p.sx,p.sy];
+        if(du.arr[k]==null&&hyp(p.sx-du.wp.x,p.sy-du.wp.y)<PROX.finish){du.arr[k]=t;H.say(p.id,'Waypoint reached.',{pri:2});}}
+      if((du.arr.a!=null&&du.arr.b!=null)||t>du.end){
+        const sc=k=>du.arr[k]==null?Infinity:du.dist[k]/Math.max(du.short[k],50)+.25*(G.pl[du[k]].pen-du.pen0[k]),sa=sc('a'),sb=sc('b');
+        d.duels.splice(d.duels.indexOf(du),1);
+        if(sa===Infinity&&sb===Infinity){H.say('all','Duel void. Nobody reached the waypoint.');continue;}
+        const w=sa<=sb?'a':'b',l=w==='a'?'b':'a';G.pl[du[w]].wins++;G.pl[du[l]].alive=false;d.imm[du[w]]=t+60000;
+        H.say(du[w],'Duel won. Most efficient route.',{pri:3});H.say(du[l],'Duel lost. You are eliminated.',{pri:3,sfx:'derez'});H.say('all',nm(du[w])+' beat '+nm(du[l])+'.');}}
+    const left=alive();
+    if(live().length>1&&left.length<=1)H.end(left[0]?left[0].name+' is the last rider standing':'No riders left');
+    else if(t-G.t0>d.dur){const s=live().sort((a,b)=>G.pl[b.id].wins-G.pl[a.id].wins);H.end(s[0].name+' wins on duels',s.map((p,i)=>(i+1)+'. '+p.name+' '+G.pl[p.id].wins+' wins'));}},
+  act(p,a){if(!G.mods.duel)return;const d=G.d,t=now(),inD=id=>d.duels.some(x=>x.a===id||x.b===id);
+    if(a==='challenge'){if(G.pl[p.id].alive===false||inD(p.id)||t<(d.imm[p.id]||0)){H.say(p.id,'Challenge unavailable.');return;}
+      let best=null;for(const q of alive()){if(q.id===p.id||inD(q.id)||t<(d.imm[q.id]||0))continue;const dd=pd(p,q);if(dd<PROX.duel&&(!best||dd<best.d))best={q,d:dd};}
+      if(!best){H.say(p.id,'No rider in range.');return;}
+      d.duels.push({st:'offer',a:p.id,b:best.q.id,until:t+20000});H.say(best.q.id,'Challenge from '+p.name+'. Say accept to duel, or ignore it.',{pri:3,sfx:'ping'});H.say(p.id,'Challenge sent.');}
+    else if(a==='accept'){const du=d.duels.find(x=>x.st==='offer'&&x.b===p.id);if(!du)return;
+      const A=P.get(du.a),B=P.get(du.b),mx=(A.sx+B.sx)/2,my=(A.sy+B.sy)/2,lo=Math.min(2000,G.arena.r*.6),hi=Math.min(3000,G.arena.r*1.1);
+      const wp=pickDest(mx,my,lo,hi),na=Graph.nearNode(A.sx,A.sy),nb=Graph.nearNode(B.sx,B.sy);
+      Object.assign(du,{st:'run',wp:wp,short:{a:shortFor(A,wp,na),b:shortFor(B,wp,nb)},dist:{a:0,b:0},arr:{},last:{},pen0:{a:G.pl[du.a].pen,b:G.pl[du.b].pen},end:t+600000});
+      for(const id of[du.a,du.b])H.say(id,'Duel started. Waypoint: '+wp.label+'. The most efficient route wins, not the fastest rider.',{pri:3});}},
+  acts(){return G.mods.duel?['challenge','accept']:[];},
+  hud(g){const d=G.d,pen=g.pen||0;
+    if(G.mods.duel){const du=d.duels.find(x=>x.a===me.id||x.b===me.id);
+      return g.alive===false?['Eliminated','Spectating']:du?(du.st==='run'?['Duel: '+du.wp.label,'Best route wins.'+(G.mods.closures?' Penalties '+pen:'')]:['Challenge pending','Say accept if you were challenged']):['Roaming hidden',alive().length+' riders left. '+(g.wins||0)+' duel wins. Ping in '+pingIn()+' s'];}
+    return d.fin[me.id]!=null?['Arrived',mmss(d.fin[me.id])+' + '+pen*30+' s penalty']:['To '+d.dest.label,(G.mods.closures?'Closed now: '+d.closed.length+'. Penalties: '+pen+' (+30 s each)':'Pick your own route. Smart beats fast.')];}},
+
+vip:{name:'VIP Escort',min:3,
+  blurb:'One VIP, one or two bodyguards, everyone else an assassin. The VIP is always visible. Assassins win by holding within '+PROX.vip+' m of the VIP for 3 s.',
+  setup(){const ps=shuffle(roster()),n=ps.length>=6?2:1;
+    ps.forEach((p,i)=>G.pl[p.id]={alive:true,role:i===0?'vip':i<=n?'guard':'assassin',team:i<=n?'protect':'hunt'});
+    const v=ps[0];G.d={vip:v.id,dur:900000,dest:pickDest(v.sx,v.sy,G.arena.r*.7,G.arena.r*1.1)};
+    H.say(v.id,'You are the VIP. Reach '+G.d.dest.label+'. Your position is public.',{pri:2});
+    H.say({role:'guard'},'You are a bodyguard. Get the VIP to '+G.d.dest.label+'.',{pri:2});H.say({role:'assassin'},'You are an assassin. Intercept the VIP.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,v=P.get(d.vip);if(!v)return;
+    if(hyp(v.sx-d.dest.x,v.sy-d.dest.y)<PROX.finish)return H.end('The VIP made it. Protectors win');
+    for(const a of live().filter(p=>rl(p.id)==='assassin')){const dd=pd(a,v);
+      if(H.hold('kill'+a.id,dd<PROX.vip,dt)>=3)return H.end(a.name+' got the VIP. Assassins win');
+      if(dd<150&&H.cool('vis'+a.id,15))H.say(a.id,'VIP visual acquired. Intercept immediately.',{pri:2});}
+    if(H.cool('vec',20))H.say({role:'assassin'},'VIP Vector Updated: Heading '+cardinal(v.hdg||0)+' on '+stName(v)+'.');
+    if(t-G.t0>d.dur)H.end('Time up. The VIP survived');},
+  vis(p){if(rl(p.id)==='vip')return{show:true};},
+  hud(g){const r=g.role;return r==='vip'?['You are the VIP','Reach '+G.d.dest.label+'. Everyone can see you.']:r==='guard'?['Bodyguard','Escort the VIP to '+G.d.dest.label]:['Assassin','Hold within '+PROX.vip+' m of the VIP for 3 s'];}},
+
+supply:{name:'Supply Run',min:2,
+  blurb:'Five crates are hidden on the grid. Whoever carries one flashes on every map. Get within '+PROX.steal+' m of a carrier to steal half their crates.',
+  setup(){const cs=[];for(const n of shuffle(Graph.junc)){if(hyp(n.x,n.y)>G.arena.r*.85)continue;if(cs.every(c=>hyp(c.x-n.x,c.y-n.y)>250))cs.push({id:n.id,x:n.x,y:n.y,by:null});if(cs.length>=5)break;}
+    while(cs.length<5){const n=pick(Graph.junc);cs.push({id:n.id,x:n.x,y:n.y,by:null});}
+    roster().forEach(p=>G.pl[p.id]={alive:true,crates:0});G.d={crates:cs,dur:600000,major:null};H.say('all','Five supply crates are live. Ride through a crate zone to claim it.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,rs=live();
+    for(const c of d.crates)if(!c.by)for(const p of rs)if(hyp(p.sx-c.x,p.sy-c.y)<PROX.crate){c.by=p.id;G.pl[p.id].crates++;H.say('all','Supply Crate claimed by '+p.name+'. Bounty is active.',{pri:2,sfx:'ping'});break;}
+    for(const h of rs){const hc=G.pl[h.id].crates;if(!hc)continue;
+      for(const q of rs){if(q.id===h.id)continue;if(pd(q,h)<PROX.steal&&H.cool('st'+h.id+q.id,10)&&H.cool('imm'+h.id,10)){const take=Math.ceil(G.pl[h.id].crates/2);G.pl[h.id].crates-=take;G.pl[q.id].crates+=take;H.say('all',q.name+' stole '+take+' crate'+(take>1?'s':'')+' from '+h.name+'.',{pri:2});break;}}}
+    const lead=rs.reduce((b,p)=>G.pl[p.id].crates>(b?G.pl[b.id].crates:0)?p:b,null);
+    const maj=lead&&G.pl[lead.id].crates*2>5?lead.id:null;
+    if(maj!==d.major){d.major=maj;if(maj)H.say('all','Target '+nm(maj)+' holds the majority share. Tracking signature increased.',{pri:2});}
+    if(maj&&H.hold('maj'+maj,true,dt)>=90)return H.end(nm(maj)+' held the majority and wins');
+    for(const p of rs)if(p.id!==maj)H.hold('maj'+p.id,false,dt);
+    if(t-G.t0>d.dur){const s=rs.slice().sort((a,b)=>G.pl[b.id].crates-G.pl[a.id].crates);H.end(s[0].name+' wins on crates',s.map((p,i)=>(i+1)+'. '+p.name+' '+G.pl[p.id].crates));}},
+  vis(p){const c=(G.pl[p.id]||{}).crates||0;if(c>0)return{show:true,flash:'on',radius:G.d.major===p.id?300:0};},
+  hud(g){const free=G.d.crates.filter(c=>!c.by).length;return['Crates carried: '+(g.crates||0),free+' unclaimed'+(G.d.major===me.id?'. You are the target.':'')];}},
+
+border:{name:'Border Control',min:2,
+  blurb:'The Smuggler starts outside the town ring and must reach the centre. Invisible on the map, except a wide search-zone ping every minute and an exact one when they cross the ring.',
+  setup(){const ps=shuffle(roster());ps.forEach((p,i)=>G.pl[p.id]={alive:true,role:i?'patrol':'smuggler'});
+    const c=Graph.nearJunction(0,0,1e9);G.d={smug:ps[0].id,center:dest(c),dur:900000,wasOut:null,breachUntil:0,nextPing:G.startAt+PING.border.first*1000};
+    H.say(ps[0].id,'You are the Smuggler. Start outside the border ring, then reach '+c.label+'. You are invisible except when you cross the ring.',{pri:2});
+    H.say({role:'patrol'},'You are Patrol. Guard the border ring. Catch the Smuggler by holding '+PROX.tag+' metres for 3 seconds.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,s=P.get(d.smug);if(!s)return;const out=hyp(s.sx,s.sy)>G.arena.r;
+    if(d.wasOut===true&&!out&&H.cool('breach',20)){d.breachUntil=t+6000;H.say({role:'patrol'},'Alert: Border Breach detected at '+stName(s)+' Point.',{pri:3,sfx:'alarm'});}
+    if(d.wasOut===null&&!out)H.say(s.id,'You must start outside the border ring. Ride out past it, then come back in.',{pri:2});
+    d.wasOut=out;
+    if(t>=d.nextPing){d.nextPing=t+PING.border.every*1000;if(H.hidden(s)&&d.breachUntil<t)H.ping(s,{role:'patrol'},PING.border.r,'The Smuggler');}
+    for(const p of live().filter(q=>rl(q.id)==='patrol')){const dd=pd(p,s);
+      if(dd<60&&H.cool('th'+p.id,10))H.say(p.id,'Unidentified thermal signature detected nearby.',{pri:2});
+      if(H.hold('catch'+p.id,dd<PROX.tag,dt)>=3)return H.end(p.name+' caught the Smuggler. Patrol wins');}
+    if(hyp(s.sx-d.center.x,s.sy-d.center.y)<PROX.finish)return H.end('The Smuggler reached the city centre');
+    if(t-G.t0>d.dur)H.end('Time up. Patrol holds the border');},
+  vis(p){if(rl(p.id)==='smuggler')return G.d.breachUntil>now()?{show:true}:{hide:true};},
+  hud(g){return g.role==='smuggler'?['Smuggler','Reach '+G.d.center.label+'. Hidden until you cross the ring.']:['Patrol','Catch: '+PROX.tag+' m for 3 s. Ping in '+pingIn()+' s'];}},
+
+ctf:{name:'Capture the Flag',min:2,teams:true,
+  blurb:'Red vs Blue. Grab the centre flag and ride it home. The carrier is always visible with a flare. An enemy within '+PROX.tag+' m for 2 s makes them drop it. First to 3.',
+  setup(){const tm=assignTeams(roster());roster().forEach(p=>G.pl[p.id]={alive:true,team:tm[p.id]});
+    const R=G.arena.r*.7,a=Math.random()*2*Math.PI,r=Graph.nearJunction(Math.sin(a)*R,Math.cos(a)*R,1e9),b=Graph.nearJunction(-Math.sin(a)*R,-Math.cos(a)*R,1e9),m=Graph.nearJunction(0,0,1e9);
+    G.d={red:dest(r),blue:dest(b),mid:dest(m),flag:{x:m.x,y:m.y,state:'home',by:null},score:{red:0,blue:0},target:3,imm:{},dur:900000};
+    H.say({team:'red'},'You are Red. Your base is '+r.label+'.',{pri:2});H.say({team:'blue'},'You are Blue. Your base is '+b.label+'.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,f=d.flag;
+    if(f.state!=='carried'){for(const p of live())if(t>(d.imm[p.id]||0)&&hyp(p.sx-f.x,p.sy-f.y)<PROX.flag){f.state='carried';f.by=p.id;H.clearHolds('tag');H.say('all','Flag secured by '+p.name+'. Intercept course calculated.',{pri:2,sfx:'ping'});break;}}
+    else{const c=P.get(f.by);if(!c){f.state='home';f.x=d.mid.x;f.y=d.mid.y;f.by=null;return;}
+      f.x=c.sx;f.y=c.sy;const team=tmOf(c.id);
+      for(const q of live().filter(x=>tmOf(x.id)!==team)){
+        if(H.hold('tag'+q.id,pd(q,c)<PROX.tag,dt)>=2){const n=Graph.nearJunction(c.sx,c.sy,250);f.state='ground';f.by=null;if(n){f.x=n.x;f.y=n.y;}d.imm[c.id]=t+5000;H.clearHolds('tag');
+          H.say('all','Flag dropped at '+(n?n.label:stName(c))+'. Zone is contested.',{pri:2});return;}}
+      const base=d[team];if(hyp(c.sx-base.x,c.sy-base.y)<PROX.base){d.score[team]++;H.say('all',cap(team)+' team scores. Red '+d.score.red+', Blue '+d.score.blue+'.',{pri:2});
+        f.state='home';f.x=d.mid.x;f.y=d.mid.y;f.by=null;H.clearHolds('tag');if(d.score[team]>=d.target)return H.end(cap(team)+' team wins '+d.score.red+' to '+d.score.blue);}}
+    if(t-G.t0>d.dur){const s=d.score;H.end(s.red===s.blue?'Time up. Draw':(s.red>s.blue?'Red':'Blue')+' team wins on time',['Red '+s.red+', Blue '+s.blue]);}},
+  vis(p){if(G.d.flag&&G.d.flag.by===p.id)return{show:true,flare:true};},
+  hud(g){const s=G.d.score,f=G.d.flag;return[cap(g.team||'')+' team: '+s.red+' - '+s.blue+' (Red - Blue)',f.by===me.id?'You have the flag. Ride to your base.':f.by?'Flag carried by '+nm(f.by):'Flag is '+(f.state==='home'?'at the centre':'on the ground')];}},
+
+king:{name:'Team King',min:2,teams:true,
+  blurb:'Each team starts with a King holding a Crown that scores every second. Kings glow at maximum range. An enemy within '+PROX.king+' m steals the Crown; a teammate within '+PROX.handover+' m for 2 s takes a handover.',
+  setup(){const tm=assignTeams(roster());roster().forEach(p=>G.pl[p.id]={alive:true,team:tm[p.id]});
+    const mk=team=>{const c=shuffle(roster().filter(p=>tm[p.id]===team))[0];return c?{by:c.id,team,immune:0}:null;};
+    G.d={crowns:[mk('red'),mk('blue')].filter(Boolean),score:{red:0,blue:0},target:240,dur:900000};
+    for(const c of G.d.crowns)H.say('all',nm(c.by)+' is now King. Target signature live.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,rs=live();
+    for(const c of d.crowns){d.score[c.team]+=dt;const k=P.get(c.by);if(!k)continue;
+      for(const q of rs){if(q.id===k.id)continue;
+        if(tmOf(q.id)!==c.team&&t>c.immune&&!d.crowns.some(x=>x.by===q.id)&&pd(q,k)<PROX.king){c.by=q.id;c.team=tmOf(q.id);c.immune=t+6000;H.clearHolds('pass');
+          H.say('all','Crown intercepted by the '+cap(c.team)+' team.',{pri:3,sfx:'alarm'});H.say('all',q.name+' is now King. Target signature live.',{pri:2});break;}
+        if(tmOf(q.id)===c.team&&!d.crowns.some(x=>x.by===q.id)&&H.hold('pass'+c.by+q.id,pd(q,k)<PROX.handover,dt)>=2){c.by=q.id;c.immune=t+3000;H.clearHolds('pass');H.say('all',q.name+' is now King. Target signature live.',{pri:2});break;}}}
+    const s=d.score;if(s.red>=d.target||s.blue>=d.target)return H.end((s.red>=d.target?'Red':'Blue')+' team wins',['Red '+Math.round(s.red)+', Blue '+Math.round(s.blue)]);
+    if(t-G.t0>d.dur)H.end(s.red===s.blue?'Time up. Draw':(s.red>s.blue?'Red':'Blue')+' team wins on time',['Red '+Math.round(s.red)+', Blue '+Math.round(s.blue)]);},
+  vis(p){if(G.d.crowns.some(c=>c.by===p.id))return{show:true,radius:prof(p).maxR};},
+  hud(g){const s=G.d.score,k=kingNow(me.id);return[cap(g.team||'')+' team'+(k?'. You are King':''),'Red '+Math.round(s.red)+' / Blue '+Math.round(s.blue)+' (first to '+G.d.target+')'];}},
+
+catmouse:{name:'Cat & Mouse',min:4,teams:true,
+  blurb:'Two teams, each with a Mouse and Cats. Mice stay hidden below the hidden speed for their class. Cats are always visible, get a rough search-zone ping on the enemy Mouse every minute, and plant virtual Snares ahead of the enemy Mouse. First Mouse home wins.',
+  setup(){const tm=assignTeams(roster());
+    for(const team of['red','blue']){const mem=roster().filter(p=>tm[p.id]===team),lo=mem.filter(p=>p.bike!=='high'),m=pick(lo.length?lo:mem);
+      mem.forEach(p=>G.pl[p.id]={alive:true,team,role:p.id===m.id?'mouse':'cat'});}
+    const rs=roster(),cx=rs.reduce((a,p)=>a+p.sx,0)/rs.length,cy=rs.reduce((a,p)=>a+p.sy,0)/rs.length;
+    G.d={dest:pickDest(cx,cy,G.arena.r*.55,G.arena.r*.95),snares:[],arr:{red:null,blue:null},pen:{red:0,blue:0},first:null,dur:900000,nextPing:G.startAt+PING.catmouse.first*1000};
+    H.say({role:'mouse'},'You are the Mouse. Stay below the hidden speed on your meter and you are hidden. Reach '+G.d.dest.label+'.',{pri:2});H.say({role:'cat'},'You are a Cat. Guard your Mouse and say snare to slow the enemy Mouse.',{pri:2});},
+  tick(dt){const t=now(),d=G.d;d.snares=d.snares.filter(s=>s.until>t);
+    if(t>=d.nextPing){d.nextPing=t+PING.catmouse.every*1000;
+      for(const team of['red','blue']){const m=live().find(p=>tmOf(p.id)===team&&rl(p.id)==='mouse');if(m&&H.hidden(m))H.ping(m,{team:team==='red'?'blue':'red',role:'cat'},PING.catmouse.r,'The enemy Mouse');}}
+    for(const team of['red','blue']){const en=team==='red'?'blue':'red',m=live().find(p=>tmOf(p.id)===team&&rl(p.id)==='mouse'),em=live().find(p=>tmOf(p.id)===en&&rl(p.id)==='mouse');if(!m||!em)continue;
+      if((em.spd>prof(em).stealth||t<em.boomUntil)&&H.cool('spot'+team,15))H.say({team,role:'cat'},'Enemy Mouse signature detected crossing '+stName(em)+'.',{pri:2});
+      for(const c of live().filter(p=>tmOf(p.id)===en&&rl(p.id)==='cat')){const dd=pd(c,m);if(dd<150&&H.closing('cl'+c.id,dd)&&H.cool('tail'+m.id,12))H.say(m.id,'Warning: Enemy Cat is closing fast on your Mouse.',{pri:2});}
+      for(const s of d.snares.slice())if(s.team===en&&hyp(m.sx-s.x,m.sy-s.y)<PROX.snare){d.pen[team]++;d.snares.splice(d.snares.indexOf(s),1);H.say(m.id,'Snare triggered. Momentum lost. Plus 25 seconds.',{pri:3,sfx:'alarm'});H.say({team:en,role:'cat'},'Your snare caught their Mouse.',{pri:2});}
+      if(d.arr[team]==null&&hyp(m.sx-d.dest.x,m.sy-d.dest.y)<PROX.finish){d.arr[team]=t-G.t0;H.say('all',cap(team)+' Mouse has reached the end point.',{pri:2});}}
+    if(d.first==null&&(d.arr.red!=null||d.arr.blue!=null))d.first=t;
+    if(d.first!=null&&((d.arr.red!=null&&d.arr.blue!=null)||t-d.first>120000)){
+      const adj=k=>d.arr[k]==null?Infinity:d.arr[k]+25000*d.pen[k],r=adj('red'),b=adj('blue');
+      return H.end((r<=b?'Red':'Blue')+' team\'s Mouse gets home first',['Red '+(r<Infinity?mmss(r):'did not finish'),'Blue '+(b<Infinity?mmss(b):'did not finish'),'Snare penalties: Red '+d.pen.red+', Blue '+d.pen.blue]);}
+    if(t-G.t0>d.dur)H.end('Time up. No Mouse made it');},
+  act(p,a){if(a!=='snare'||rl(p.id)!=='cat')return;const d=G.d,t=now();
+    if(d.snares.filter(s=>s.team===tmOf(p.id)).length>=2){H.say(p.id,'Two snares already armed.');return;}
+    const n=clsOf(p.bike)==='open'?null:Graph.nearJunction(p.sx,p.sy,120),x=n?n.x:p.sx,y=n?n.y:p.sy;d.snares.push({x,y,team:tmOf(p.id),until:t+60000});H.say(p.id,'Snare armed at '+(n?n.label:stName(p))+'.',{pri:2,sfx:'ping'});},
+  acts(){return rl(me.id)==='cat'?['snare']:[];},
+  vis(p){if(rl(p.id)==='cat')return{show:true};},
+  hud(g){const d=G.d;return g.role==='mouse'?['Mouse','Stay under '+prof(me).stealth+' km/h to stay hidden. Reach '+d.dest.label]:['Cat','Say snare to arm a 50 m zone. '+d.snares.filter(s=>s.team===g.team).length+'/2 armed. Ping in '+pingIn()+' s'];}},
+arena:{name:'Firefight',min:2,teams:true,
+  mods:[{k:'royale',label:'Battle Royale',info:'No respawns, spectator audio once out. The safe zone shrinks every 3 minutes and 10 s outside it is fatal.'},
+        {k:'squads',label:'Squads',info:'Red and Blue teams with no friendly fire. Off means solo free-for-all.'},
+        {k:'assist',label:'Aim assist',info:'Gently pulls shotgun, Tommy and Uzi shots toward a target near your aim. The railgun never gets it.'}],
+  defaults:{assist:true},
+  blurb:'Laser tag where your ride is the gun. One weapon slot, fire by shouting, caches hidden by fog and found by ear. Deathmatch respawns after 15 s; first to the kill target wins.',
+  setup(){const rs=roster(),tm=G.mods.squads?assignTeams(rs):{};
+    rs.forEach(p=>G.pl[p.id]={alive:true,hp:100,weapon:'shotgun',readyAt:0,cycled:true,kills:0,deaths:0,down:0,team:tm[p.id]});
+    bursts=[];nearMap=new Map();
+    G.d={caches:[],zoneR:G.arena.r,zoneK:0,warned:false,target:G.mods.squads?25:15,dur:G.mods.royale?1800000:900000,nextSpawn:G.startAt+75000};
+    const nW=Math.max(3,Math.ceil(rs.length/2)),nH=rs.length+1;for(let i=0;i<nW;i++)spawnCache('weapon');for(let i=0;i<nH;i++)spawnCache('health');
+    H.say('all',(G.mods.royale?'Battle royale. No respawns. ':'Deathmatch. First to '+G.d.target+' kills. ')+'Shout fire to shoot. Stop completely for 3 seconds at a cache to claim it.',{pri:2});},
+  tick(dt){const t=now(),d=G.d,rs=live();
+    const due=bursts.filter(b=>b.at<=t);bursts=bursts.filter(b=>b.at>t);
+    for(const b of due){const s=P.get(b.id),g=G.pl[b.id];if(s&&g&&g.alive!==false&&!(g.down>t))volley(s,b.wk,aimOf(s));}
+    for(const p of rs){const g=G.pl[p.id];
+      if(g.down&&g.down<=t){g.down=0;g.hp=100;g.weapon='shotgun';g.readyAt=0;g.cycled=true;H.say(p.id,'Systems restored. Back in the fight.',{pri:2});}
+      if(!g.cycled&&t>=g.readyAt&&g.alive!==false){g.cycled=true;H.say(p.id,'Chamber clear. Weapon cycled and ready for next engagement.');}}
+    for(const p of rs){const g=G.pl[p.id];if(g.alive===false||g.down>t)continue;
+      for(const c of d.caches){if(c.gone)continue;const dd=hyp(p.sx-c.x,p.sy-c.y),k=p.id+c.id;
+        if(c.k==='health'){if(dd<45&&H.cool('hc'+k,30))H.say(p.id,'Medical asset detected nearby within 45 metres. Pull over to consume.',{pri:2});}
+        else{const near=dd<500;if(near&&!nearMap.get(k))H.say(p.id,'Weapon cache scan positive. '+WEAPONS[c.w].name+' signatures detected about '+Math.round(dd/50)*50+' metres at your '+clockDir(p,{sx:c.x,sy:c.y})+(c.st&&c.st!=='unnamed road'?' near '+c.st:'')+'.',{pri:2,sfx:'ping'});
+          if(near!==!!nearMap.get(k)&&(near||dd>600))nearMap.set(k,near);}
+        if(H.hold('pk'+k,dd<15&&(p.spd||0)<=1.5,dt)>=3){c.gone=true;H.clearHolds('pk'+k);
+          if(c.k==='weapon'){g.weapon=c.w;g.readyAt=0;g.cycled=true;H.say(p.id,WEAPONS[c.w].name+' systems integrated. Previous firearm dismantled and replaced.',{pri:3,sfx:'ping'});}
+          else{g.hp=Math.min(100,g.hp+50);H.say(p.id,'Medical cache depleted. Grid resource removed.',{pri:2,sfx:'ping'});
+            for(const q of rs){if(q.id===p.id||(G.mods.squads&&g.team&&G.pl[q.id].team===g.team))continue;if(pd(q,p)<200)H.say(q.id,'Local medical broadcast intercepted nearby.',{pri:2});}}
+          break;}}}
+    if(t>=d.nextSpawn){d.nextSpawn=t+75000;const live_=d.caches.filter(c=>!c.gone);if(live_.length<rs.length*2+2)spawnCache(Math.random()<.6?'health':'weapon');}
+    if(G.mods.royale){const phase=Math.floor((t-G.t0)/180000);
+      if(!d.warned&&(t-G.t0)%180000>150000&&d.zoneR>201){d.warned=true;H.say('all','Radiation zone advancing in 30 seconds. Move toward the centre.',{pri:2,sfx:'alarm'});}
+      if(phase>d.zoneK){d.zoneK=phase;d.zoneR=Math.max(200,d.zoneR*.8);d.warned=false;H.say('all','Radiation zone has advanced.',{pri:2});}
+      for(const p of rs){const g=G.pl[p.id];if(g.alive===false)continue;const out=hyp(p.sx,p.sy)>d.zoneR,sec=H.hold('rad'+p.id,out,dt);
+        if(out&&H.cool('radw'+p.id,12))H.say(p.id,'Warning: radiation zone. Return inside within 10 seconds.',{pri:3,sfx:'alarm'});
+        if(sec>=10){g.alive=false;H.say(p.id,'Terminal radiation exposure. Eliminated.',{pri:3,sfx:'derez'});H.say('all',p.name+' was lost to the radiation.',{pri:2});}}}
+    const al=alive(),sc={red:0,blue:0};for(const p of rs){const g=G.pl[p.id];if(g.team)sc[g.team]+=g.kills;}
+    const lines=()=>rs.slice().sort((a,b)=>G.pl[b.id].kills-G.pl[a.id].kills).map((p,i)=>(i+1)+'. '+p.name+' '+G.pl[p.id].kills+' kills, '+G.pl[p.id].deaths+' deaths');
+    if(G.mods.royale){
+      if(G.mods.squads){const ts=new Set(al.map(p=>G.pl[p.id].team));if(rs.length>1&&ts.size<=1)return H.end(al[0]?cap(G.pl[al[0].id].team)+' squad survives':'No survivors',lines());}
+      else if(rs.length>1&&al.length<=1)return H.end(al[0]?al[0].name+' is the last rider alive':'No survivors',lines());}
+    else if(G.mods.squads){if(sc.red>=d.target||sc.blue>=d.target)return H.end((sc.red>=d.target?'Red':'Blue')+' squad wins '+sc.red+' to '+sc.blue,lines());}
+    else{const top=rs.reduce((b,p)=>G.pl[p.id].kills>(b?G.pl[b.id].kills:-1)?p:b,null);if(top&&G.pl[top.id].kills>=d.target)return H.end(top.name+' wins the deathmatch',lines());}
+    if(t-G.t0>d.dur){const top=rs.slice().sort((a,b)=>G.pl[b.id].kills-G.pl[a.id].kills)[0];H.end(G.mods.squads?(sc.red===sc.blue?'Time up. Draw':(sc.red>sc.blue?'Red':'Blue')+' squad wins on time'):(top?top.name+' wins on kills':'Time up'),lines());}},
+  act(p,a){if(a==='fire')fire(p);},
+  acts(){return['fire'];},
+  vis(p,v){const g=G.pl[p.id]||{},t=now(),o={};
+    if(g.down>t)return{hide:true};
+    if(g.exposeUntil>t)o.show=true;
+    if(g.flareUntil>t&&v&&hyp(v.sx-p.sx,v.sy-p.sy)<150)o.show=true;                // muzzle flare is local
+    if(g.weapon&&g.weapon!=='shotgun'){o.radiusBonus=15;o.stealthShift=1;}         // elite weapons are louder
+    return o;},
+  hud(g){const t=now();if(g.alive===false)return['Eliminated','Spectator audio mode'];if(g.down>t)return['Neutralized','Back in '+Math.ceil((g.down-t)/1000)+' s. Stay pulled over.'];
+    const W=WEAPONS[g.weapon],rdy=t>=g.readyAt;
+    return['HP '+g.hp+' | '+W.name+(rdy?' ready':' cycling '+Math.ceil((g.readyAt-t)/1000)+' s'),(G.mods.royale?'Zone '+Math.round(G.d.zoneR)+' m. '+alive().length+' alive':'First to '+G.d.target+' kills')+'. Shout "fire"'];}},
+disaster:{name:'Disaster Run',min:2,
+  blurb:'Rapid rounds: murderer, tornado, meteor strike, earthquake, flood, police raid, hunt. Points every round, podium at the end. Rounds where your play gets others eliminated are worth more (hunt and murderer x1.5, flood and police x1.25). Planning and smooth riding beat speed.',
+  ...ROUND_BASE,setup(){roundSetup(DIS_POOL,'Disaster run.');}},
+mystery:{name:'Murder Mystery',min:3,
+  mods:[{k:'hunt',label:'Hunt (single-target free-for-all)',info:'No hidden murderer or sheriff. Everyone hunts one target and is hunted by one rider. Catch yours to inherit theirs. Unlike the Disaster Run version there is no constant tracking, only distance call-outs and fuzzy pings.'},
+        {k:'assist',label:'Aim assist',info:'Gently pulls the Sheriff\'s shot toward a suspect near the aim line.'}],
+  defaults:{assist:true},
+  blurb:'Hidden roles in the style of Trouble in Terrorist Town: a murderer, a revealed Sheriff with one slow shot, and innocents who must work out who to trust. Best played over a few rounds.',
+  ...ROUND_BASE,setup(){roundSetup(G.mods.hunt?['hunt']:['mystery'],G.mods.hunt?'Hunt.':'Murder mystery.');}}
+};
+const MODE_ORDER=['tron','outbreak','gridlock','vip','supply','border','ctf','king','catmouse','arena','disaster','mystery'];
+
+/* ================= map view ================= */
+const PAL=['#f5c842','#f48fb1','#7cc4f5','#9be564','#ff9f43','#c3a6ff','#5eead4','#ff6b5a'];
+function col(p){const g=G.pl[p.id]||{};if(g.role==='infected')return'#9be564';if(g.role==='murderer'&&G.mode==='disaster')return'#ff6b5a';if(g.role==='sheriff')return'#f5c842';if(g.role==='survivor')return'#f3efe4';if(g.role==='vip')return'#f5c842';if(g.role==='smuggler')return'#f48fb1';
+  if(g.team==='red')return'#ff6b5a';if(g.team==='blue')return'#7cc4f5';let h=0;for(const c of p.id)h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length];}
+const cartoKey=()=>{if(CFG.cartoKey)return CFG.cartoKey;try{return localStorage.getItem('tarmac.carto')||'';}catch(e){return'';}};
+function baseLayer(){const k=cartoKey();                              // CARTO dark with a key, otherwise OpenStreetMap standard tiles darkened with a CSS filter
+  if(k)return L.tileLayer('https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key='+encodeURIComponent(k),{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO | road data: OpenFreeMap / Overpass'});
+  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'osm-dark',attribution:'&copy; OpenStreetMap contributors | road data: OpenFreeMap / Overpass'});}
+function workerBase(){return CFG.overpassUrl?CFG.overpassUrl.replace(/\/overpass\/?$/,''):(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,''):'');}
+async function loadCartoKey(){const b=workerBase(),lab=$('#inCarto').closest('label');                  // the key lives in the Worker as a secret
+  if(!b||cartoKey()){if(lab)lab.hidden=!!b&&!!cartoKey();return;}
+  if(lab)lab.hidden=true;
+  try{const j=await(await fetch(b+'/carto-key',{cache:'no-store'})).json();if(j.key){CFG.cartoKey=j.key;View.refreshBase();return;}}catch(e){}
+  if(lab)lab.hidden=false;}                                                                    // no key from the Worker: show the manual box again
+const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
+  init(){if(this.map)return;
+    this.map=L.map('map',{zoomControl:false,attributionControl:true}).setView([DEMO.lat,DEMO.lon],16);
+    this.map.createPane('riders').style.zIndex=450;this.map.createPane('me').style.zIndex=650;
+    this.tiles=baseLayer().addTo(this.map);
+    this.canvas=L.canvas({padding:.5});this.graphL=L.layerGroup().addTo(this.map);this.hintL=L.layerGroup().addTo(this.map);
+    this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
+    setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();},500);},
+  ll(x,y){return Geo.ll(x,y);},
+  icon(p,cls){return L.divIcon({className:'',iconSize:[0,0],html:'<div class="rider '+cls+'" style="--c:'+col(p)+'"><i></i><b>'+esc(p.name)+'</b></div>'});},
+  frame(){const m=P.get(me.id);if(!m||m.sx==null||G.status==='lobby'||!this.map)return;
+    const blind=isBlind();$('#map').classList.toggle('blind',blind);
+    if(blind!==this.wasBlind){this.wasBlind=blind;Say.say(blind?'Rival tracking offline.':'Rival tracking restored.',{pri:2,cd:8000,key:'blind'+blind});}
+    const seen=new Set();
+    for(const p of P.values()){
+      const isMe=p.id===me.id;if(p.sx==null)continue;
+      if(!isMe&&blind)continue;                                          // MAP BLINDNESS: rivals stop updating
+      p.rx+=(p.sx-p.rx)*.3;p.ry+=(p.sy-p.ry)*.3;
+      const info=isMe?(visInfo(p,p)||{radius:0}):visInfo(p,m);if(!info)continue;
+      seen.add(p.id);let o=this.mk.get(p.id);if(!o){o={};this.mk.set(p.id,o);}
+      const pos=this.ll(p.rx,p.ry),cls=(isMe?'me ':'')+(info.boom?'boom ':'')+(info.flash==='white'?'white ':info.flash?'flash ':''),key=cls+p.name+col(p);
+      if(!o.m){o.m=L.marker(pos,{icon:this.icon(p,cls),interactive:false,pane:isMe?'me':'riders',zIndexOffset:isMe?1000:0}).addTo(this.map);o.key=key;}
+      else{o.m.setLatLng(pos);if(o.key!==key){o.m.setIcon(this.icon(p,cls));o.key=key;}}
+      const c=col(p);
+      if(info.radius>0){if(!o.c)o.c=L.circle(pos,{radius:info.radius,color:c,weight:1,fillColor:c,fillOpacity:isMe?.07:.18,pane:'riders',interactive:false}).addTo(this.map);else{o.c.setLatLng(pos);o.c.setRadius(info.radius);}}
+      else if(o.c){this.map.removeLayer(o.c);o.c=null;}
+      if(info.flare){const pts=[pos,...p.fl.map(q=>this.ll(q[0],q[1]))],n=p.fl.length,ln=p.fl[n-1],pr=n>1?p.fl[n-2]:[p.sx,p.sy],brg=bearingXY(ln[0]-pr[0],ln[1]-pr[1]);
+        if(!o.f){o.f=L.polyline(pts,{color:'#ff9f43',weight:5,opacity:isMe?.5:.95,dashArray:'2 8',lineCap:'round',pane:'riders',interactive:false}).addTo(this.map);
+          o.a=L.marker(pts[pts.length-1],{icon:L.divIcon({className:'',html:'<div class="arrow">▲</div>',iconSize:[0,0]}),interactive:false,pane:'riders'}).addTo(this.map);}
+        else{o.f.setLatLngs(pts);o.a.setLatLng(pts[pts.length-1]);}
+        const el=o.a.getElement();if(el)el.firstChild.style.transform='rotate('+brg+'deg)';}
+      else if(o.f){this.map.removeLayer(o.f);this.map.removeLayer(o.a);o.f=o.a=null;}}
+    for(const[id,o]of this.mk)if(!seen.has(id)&&!(blind&&id!==me.id)){for(const k of['m','c','f','a'])if(o[k])this.map.removeLayer(o[k]);this.mk.delete(id);}
+    if(!this.free)this.map.panTo(this.ll(m.rx,m.ry),{animate:false});},
+  trails(){if(G.mode!=='tron'||G.status==='lobby'||!this.map||isBlind())return;const t=now();
+    for(const p of P.values()){const a=Trails.get(p.id);if(!a)continue;
+      const pts=a.filter(q=>t-q.t<=CFG.trailMs&&t-q.t>=CFG.trailGraceMs).map(q=>this.ll(q.x,q.y));let l=this.trail.get(p.id);
+      if(!l){l=L.polyline(pts,{color:col(p),weight:6,opacity:.9,pane:'riders',interactive:false}).addTo(this.map);this.trail.set(p.id,l);}else l.setLatLngs(pts);}},
+  overlay(){const o=this.over;if(!o||G.status==='lobby')return;o.clearLayers();if(!G.arena||!Graph.ready)return;
+    const ll=(x,y)=>this.ll(x,y),d=G.d||{},ring=(x,y,r,op)=>L.circle(ll(x,y),Object.assign({radius:r,interactive:false},op)).addTo(o),
+      pin=(x,y,cls,txt)=>L.marker(ll(x,y),{icon:L.divIcon({className:'',html:'<div class="pin '+cls+'">'+txt+'</div>',iconSize:[0,0]}),interactive:false}).addTo(o);
+    const bd=G.mode==='border';ring(0,0,G.arena.r,{color:bd?'#ff9f43':'#f3efe4',weight:bd?5:2,dashArray:bd?null:'8 10',fill:false});
+    const g=G.pl[me.id]||{};
+    for(const pg of d.pings||[])if(pg.until>now()&&addressed(pg.aud))ring(pg.x,pg.y,pg.r,{color:'#f48fb1',weight:4,dashArray:'10 8',fillColor:'#f48fb1',fillOpacity:.15});
+    if((G.mode==='disaster'||G.mode==='mystery')&&d.cur){const r=d.r||{};
+      if(d.cur==='tornado'&&r.rad){ring(r.x,r.y,r.rad,{color:'#ff6b5a',weight:4,fillColor:'#ff6b5a',fillOpacity:.25});pin(r.x,r.y,'r','TORNADO');}
+      if(d.cur==='meteor')for(const m of r.strikes||[])if(m.hitAt>now()-3000){ring(m.x,m.y,m.rad,{color:'#ff9f43',weight:4,dashArray:'6 6',fillColor:'#ff6b5a',fillOpacity:.22});pin(m.x,m.y,'r',String(Math.max(0,Math.ceil((m.hitAt-now())/1000))));}
+      if(d.cur==='flood')for(const q of r.spots||[]){ring(q.x,q.y,40,{color:q.by?'#f3efe4':'#7cc4f5',weight:3,fillOpacity:.2});pin(q.x,q.y,q.by?'w':'b',q.by?'TAKEN':'HIGH GROUND');}
+      if(d.cur==='police')for(const c of r.cops||[]){ring(c.x,c.y,PROX.vip,{color:'#7cc4f5',weight:2,dashArray:'3 5',fillColor:'#ff6b5a',fillOpacity:.25});pin(c.x,c.y,'b','POLICE');}
+      if(d.cur==='mystery')for(const z of r.zones||[])if(z.until>now()){ring(z.x,z.y,z.r,{color:'#f48fb1',weight:3,dashArray:'8 8',fillColor:'#f48fb1',fillOpacity:.15});pin(z.x,z.y,'r','?');}}
+    if(G.mode==='arena'){if(G.mods.royale)ring(0,0,d.zoneR,{color:'#ff6b5a',weight:5,fill:false});
+      if(Sim.on&&$('#simReveal').checked)for(const c of d.caches||[])if(!c.gone)pin(c.x,c.y,c.k==='health'?'g':'y',c.k==='health'?'+':'W');}
+    if(G.mode==='outbreak'&&G.mods.shrink){ring(d.zone.x,d.zone.y,d.zone.r,{color:'#9be564',weight:4,fill:false});if(d.next)ring(d.next.x,d.next.y,d.next.r,{color:'#f5c842',weight:3,dashArray:'6 8',fill:false});}
+    if(G.mode==='gridlock'){if(d.dest)pin(d.dest.x,d.dest.y,'y','⚑');
+      for(const c of d.closed||[]){ring(c.x,c.y,PROX.closed,{color:'#ff6b5a',weight:2,fillColor:'#ff6b5a',fillOpacity:.3});pin(c.x,c.y,'r','✕');}
+      const du=(d.duels||[]).find(x=>x.st==='run'&&(x.a===me.id||x.b===me.id));if(du)pin(du.wp.x,du.wp.y,'y','⚑');}
+    if(G.mode==='vip'||G.mode==='catmouse')pin(d.dest.x,d.dest.y,'y','⚑');
+    if(G.mode==='supply')for(const c of d.crates)if(!c.by){ring(c.x,c.y,PROX.crate,{color:'#f5c842',weight:2,fillOpacity:.15});pin(c.x,c.y,'y','▣');}
+    if(bd)pin(d.center.x,d.center.y,'g','★');
+    if(G.mode==='ctf'){pin(d.red.x,d.red.y,'r','R');ring(d.red.x,d.red.y,PROX.base,{color:'#ff6b5a',weight:2,fillOpacity:.12});pin(d.blue.x,d.blue.y,'b','B');ring(d.blue.x,d.blue.y,PROX.base,{color:'#7cc4f5',weight:2,fillOpacity:.12});
+      if(d.flag.state!=='carried')pin(d.flag.x,d.flag.y,'w','⚑');}
+    if(G.mode==='catmouse')for(const s of d.snares||[])if(s.team===g.team)ring(s.x,s.y,PROX.snare,{color:'#ff9f43',weight:2,dashArray:'4 6',fillOpacity:.15});},
+  drawGraph(){if(!this.graphL)return;this.graphL.clearLayers();
+    if(this.tiles)this.tiles.setOpacity(Graph.synthetic?.12:1);
+    if(!(Sim.on||Graph.synthetic)||!Graph.ready)return;                    // real GPS on real streets already shows the roads on the tiles
+    const roads=[],paths=[];for(const sg of Graph.segs){const A=Graph.nodes.get(sg.a),B=Graph.nodes.get(sg.b),pair=[Geo.ll(A.x,A.y),Geo.ll(B.x,B.y)];(sg.p?paths:roads).push(pair);}
+    L.polyline(roads,{renderer:this.canvas,color:'#f3efe4',weight:3,opacity:.5,interactive:false}).addTo(this.graphL);
+    if(paths.length)L.polyline(paths,{renderer:this.canvas,color:'#7cc4f5',weight:2,opacity:.5,dashArray:'4 4',interactive:false}).addTo(this.graphL);
+    for(const n of Graph.junc.slice(0,1200))L.circleMarker(Geo.ll(n.x,n.y),{renderer:this.canvas,radius:3,color:'#f5c842',weight:1,fillOpacity:.85,interactive:false}).addTo(this.graphL);},
+  simHint(){if(!this.hintL)return;this.hintL.clearLayers();if(!Sim.on||!Sim.w||!Graph.ready||G.status==='lobby')return;
+    const lk=Sim.w.look();if(lk.exits.length<2)return;const C={L:'#f48fb1',S:'#f5c842',R:'#7cc4f5'},J=lk.node;
+    L.circleMarker(this.ll(J.x,J.y),{radius:10,color:'#fff',weight:3,fillOpacity:0,interactive:false}).addTo(this.hintL);
+    for(const x of lk.exits){const d=hyp(x.N.x-J.x,x.N.y-J.y)||1,f=Math.min(1,45/d),px=J.x+(x.N.x-J.x)*f,py=J.y+(x.N.y-J.y)*f;
+      L.polyline([this.ll(J.x,J.y),this.ll(px,py)],{color:C[x.k],weight:7,opacity:.9,interactive:false}).addTo(this.hintL);
+      L.marker(this.ll(px,py),{icon:L.divIcon({className:'',html:'<div class="pin" style="color:'+C[x.k]+'">'+x.k+'</div>',iconSize:[0,0]}),interactive:false}).addTo(this.hintL);}},
+  refreshBase(){if(!this.map||!this.tiles)return;this.map.removeLayer(this.tiles);this.tiles=baseLayer().addTo(this.map);this.tiles.bringToBack();},
+  fit(){if(this.map){this.map.setView(this.ll(0,0),16);this.map.invalidateSize();this.drawGraph();}}};
+
+/* ================= UI ================= */
+const UI={cur:'scrLobby',toastT:null,
+  show(id){this.cur=id;document.querySelectorAll('.scr').forEach(s=>s.hidden=s.id!==id);if(id==='scrArena'){View.init();setTimeout(()=>{View.map.invalidateSize();View.fit();},50);}},
+  toast(t,ms){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(this.toastT);this.toastT=setTimeout(()=>e.style.display='none',ms||2500);},
+  caption(t){const e=$('#caption');if(e)e.textContent=t;},
+  sync(){if(!me.room)return;
+    if(G.status==='lobby'){if(this.cur!=='scrRoom')this.show('scrRoom');this.room();$('#overlay').hidden=true;}
+    else if(this.cur!=='scrArena')this.show('scrArena');},
+  room(){$('#roomCode').textContent=me.room;
+    $('#roster').innerHTML=[...P.values()].filter(p=>!p.bot).map(p=>'<li><span>'+esc(p.name)+(p.id===G.hostId?' (host)':'')+(p.id===me.id?' (you)':'')+'</span><span class="badge '+(p.bike==='high'||p.bike==='open'?'hi':'lo')+'">'+(BIKE_LABEL[p.bike]||'Low-CC')+'</span></li>').join('');
+    const host=isHost();
+    $('#hop').innerHTML=MODE_ORDER.map(k=>'<button data-m="'+k+'" aria-pressed="'+(G.mode===k)+'"'+(host?'':' disabled')+'>'+MODES[k].name+'</button>').join('');
+    const M=MODES[G.mode];$('#blurb').textContent=M.blurb;
+    $('#mods').innerHTML=(M.mods||[]).map(m=>'<label class="chk"><input type="checkbox" data-mod="'+m.k+'" '+(G.mods[m.k]?'checked':'')+(host?'':' disabled')+'><span><b>Modifier: '+m.label+'.</b> '+m.info+'</span></label>').join('');
+    $('#selR').value=G.cfg.r;$('#selBots').value=G.cfg.bots;$('#selCenter').value=G.cfg.center;
+    for(const s of['#selR','#selBots','#selCenter'])$(s).disabled=!host;
+    $('#selChat').value=G.cfg.chat;$('#selChatR').value=G.cfg.chatR;$('#chatRWrap').hidden=G.cfg.chat!=='prox';$('#selPoi').value=G.cfg.poi;
+    const dm=['gridlock','vip','catmouse'].includes(G.mode);$('#destBox').hidden=!dm;$('#fixedDest').hidden=!(G.mode==='gridlock'&&!G.mods.duel);
+    $('#destLbl').textContent=G.cfg.dest?G.cfg.dest.label:'Random';$('#btnClrDest').hidden=!G.cfg.dest||!host;$('#btnDest').disabled=!host;
+    $('#roundsWrap').hidden=!['disaster','mystery'].includes(G.mode);$('#selRounds').value=G.cfg.rounds;
+    for(const s of['#selChat','#selChatR','#selPoi','#selTime','#selRounds'])$(s).disabled=!host;
+    {const dm_=timeLimitMin0();$('#selTime').options[0].textContent='Mode default ('+(dm_?dm_+' min':'no limit')+')';$('#selTime').value=G.cfg.time;}
+    $('#btnStart').hidden=!host;$('#waitMsg').hidden=host;},
+  tick(){const m=P.get(me.id);if(G.status==='lobby'||!m)return;
+    const spd=m.spd||0,i=visInfo(m,m),rad=i?i.radius:0;
+    $('#mSpd').textContent=Math.round(spd);$('#mRad').textContent=rad;$('#needle').style.left=clamp(spd/prof(m).max,0,1)*100+'%';
+    const pr=prof(m),ck=clsOf(m.bike);
+    if(this.mk!==ck){this.mk=ck;const z=document.querySelectorAll('.zones i');[pr.stealth,pr.flare-pr.stealth,pr.blind-pr.flare,pr.max-pr.blind].forEach((v,i)=>{if(z[i])z[i].style.flex=v;});
+      const pc=v=>(v/pr.max*100)+'%';$('#tk0').style.left=pc(pr.stealth);$('#tk1').style.left=pc(pr.flare);$('#tk2').style.left=pc(pr.blind);
+      $('#tk0').textContent=pr.stealth+' hidden';$('#tk1').textContent=pr.flare+' flare';$('#tk2').textContent=pr.blind+' blind';}
+    $('#btnMic').hidden=!Chat.on;
+    if(Sim.on&&Sim.w){const lk=Sim.w.look(),have={},jn=lk.exits.length>1;lk.exits.forEach(x=>{have[x.k]=1;});
+      for(const[k,id]of[['L','#simL'],['S','#simS'],['R','#simR']]){const el=$(id);el.disabled=jn&&!have[k];el.setAttribute('aria-pressed',Sim.w.intent===k);}
+      $('#simInfo').textContent=(jn?'Junction in '+Math.round(lk.dist)+' m':'No junction ahead')+(Sim.w.intent?'. Queued: '+({L:'left',S:'straight',R:'right'})[Sim.w.intent]:'');}
+    $('#mState').textContent=i&&i.boom?'Exposed':isBlind()?'Flying blind':rad>0?(i.flare?'Flare':'Visible'):i?'Visible':'Hidden';
+    const g=G.pl[me.id]||{},M=MODES[G.mode];let h=['',''];
+    if(G.status==='countdown')h=[M.name,'Starts in '+Math.max(0,Math.ceil((G.startAt-now())/1000))+' s'];
+    else if(G.status==='running'&&M.hud)try{h=M.hud(g);}catch(e){h=[M.name,''];}
+    else h=[M.name,''];
+    if(G.status==='running'&&G.d&&G.d.dur<1e11)h=[h[0],(h[1]?h[1]+' | ':'')+mmss(G.d.dur-(now()-G.t0))+' left'];
+    $('#hudHead').textContent=h[0];$('#hudSub').textContent=h[1];
+    const acts=G.status==='running'&&M.acts?M.acts():[];
+    const ah=acts.map(a=>'<button class="btn pink" data-act="'+a+'">'+cap(a)+'</button>').join('');
+    if($('#acts').dataset.h!==ah){$('#acts').innerHTML=ah;$('#acts').dataset.h=ah;}
+    $('#btnSim').hidden=!Sim.on;
+    const ov=$('#overlay');
+    if(G.status==='countdown'){const s=Math.max(0,Math.ceil((G.startAt-now())/1000));ov.hidden=false;
+      ov.dataset.k='';ov.innerHTML='<div class="big disp">'+s+'</div><h2 class="disp">'+M.name+'</h2><p>Loading streets and roles. Stay legal and ride smart.</p>';
+      if([10,5,3,2,1].includes(s))Say.say(String(s),{key:'cd'+s,cd:4000});}
+    else if(G.status==='ended'&&G.result){ov.hidden=false;const rk=G.result.title+G.result.lines.join('|');if(ov.dataset.k!==rk){ov.dataset.k=rk;
+      ov.innerHTML='<h2 class="disp">'+esc(G.result.title)+'</h2>'+(G.result.lines.length?'<ol>'+G.result.lines.map(l=>'<li>'+esc(l.replace(/^\d+\.\s*/,''))+'</li>').join('')+'</ol>':'')+(isHost()?'<button class="btn" id="btnBack">Back to lobby</button>':'<p>Waiting for the host.</p>');}}
+    else ov.hidden=true;}};
+
+const Picker={map:null,mk:null,sel:null,_r:[],
+  open(){$('#picker').hidden=false;
+    if(!this.map){this.map=L.map('pmap');baseLayer().addTo(this.map);
+      this.map.on('click',e=>this.set(e.latlng.lat,e.latlng.lng,'Dropped pin',true));}
+    const h=P.get(me.id),c=G.cfg.dest?[G.cfg.dest.lat,G.cfg.dest.lon]:(h&&h.lat!=null?[h.lat,h.lon]:[DEMO.lat,DEMO.lon]);this.map.setView(c,14);setTimeout(()=>this.map.invalidateSize(),60);},
+  set(lat,lon,label,rev){this.sel={lat,lon,label};if(!this.mk)this.mk=L.marker([lat,lon]).addTo(this.map);else this.mk.setLatLng([lat,lon]);$('#pSel').textContent=label;
+    if(rev)fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat='+lat+'&lon='+lon).then(r=>r.json()).then(j=>{
+      if(this.sel&&this.sel.lat===lat&&this.sel.lon===lon){const n=j.name||(j.address&&(j.address.road||j.address.suburb))||j.display_name;if(n){this.sel.label=n;$('#pSel').textContent=n;}}}).catch(()=>{});},
+  async search(q){if(!q)return;
+    try{const js=await(await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q))).json();this._r=js;
+      $('#pres').innerHTML=js.length?js.map((x,i)=>'<li><button data-i="'+i+'">'+esc(x.display_name)+'</button></li>').join(''):'<li style="color:var(--dim)">No matches.</li>';}
+    catch(e){UI.toast('Search failed.');}}};
+
+/* ================= network handler ================= */
+function onNet(m){
+  if(!m||m.from===me.id)return;
+  switch(m.type){
+    case 'hello':{if(!P.has(m.p.id))P.set(m.p.id,{id:m.p.id,name:m.p.name,bike:m.p.bike,t:now()});else Object.assign(P.get(m.p.id),{name:m.p.name,bike:m.p.bike});
+      if(!m.reply)Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike},reply:true});
+      if(isHost())Host.push();else UI.sync();break;}
+    case 'pos':applyPos(m,null);break;
+    case 'game':{if(m.g.hostId!==m.from)break;G=m.g;if(G.arena)Arena.ensure();else Arena.id=null;if(G.status==='lobby')Sim.stop();UI.sync();break;}
+    case 'say':if(addressed(m.to))playSay(m);break;
+    case 'boom':onBoom(m);break;
+    case 'rtc':Chat.onRtc(m);break;
+    case 'act':if(isHost())Host.act(m);break;
+    case 'bye':P.delete(m.id);if(isHost())Host.push();break;}}
+
+const Arena={id:null,
+  async ensure(){const a=G.arena;if(!a||this.id===a.id)return;this.id=a.id;
+    await Graph.load(a.lat,a.lon,a.r,a.net,G.cfg.center==='demo'||Sim.on);rebase();View.fit();Sim.begin();startInputs();
+    if(Graph.failed)UI.toast('Roads did not load on this phone ('+Graph.failed+'). Positions still work; street names and flares are limited.',6000);}};
+function startInputs(){if($('#chkVoice').checked||$('#chkShout').checked)Voice.start();if($('#chkShout').checked)Mic.startShout();if($('#chkChat').checked&&G.cfg.chat!=='off')Chat.start();}
+
+/* ================= wiring ================= */
+$('#inCarto').value=cartoKey();
+$('#inCarto').onchange=e=>{const v=e.target.value.trim();try{if(v)localStorage.setItem('tarmac.carto',v);else localStorage.removeItem('tarmac.carto');}catch(err){}CFG.cartoKey=v;UI.toast(v?'Key saved. Reload the page to use it on the map.':'Key cleared.',3000);};
+const BIKES=['low','high','foot','open'],BID={low:'#bikeLow',high:'#bikeHigh',foot:'#bikeFoot',open:'#bikeOpen'};
+function setBike(b){me.bike=b;for(const k of BIKES)$(BID[k]).setAttribute('aria-pressed',k===b);}
+for(const k of BIKES)$(BID[k]).onclick=()=>setBike(k);
+async function enter(room,host){
+  me.name=$('#inName').value.trim().slice(0,14);if(!me.name){UI.toast('Add a rider name first.');return;}
+  Say.unlock();Sim.on=$('#chkSim').checked;
+  if(me.bike==='foot')Compass.request();
+  if($('#chkChat').checked||$('#chkShout').checked)Mic.get().catch(e=>UI.toast('Mic: '+e.message,3000));me.room=room;P.set(me.id,{id:me.id,name:me.name,bike:me.bike,t:now()});
+  try{await Net.join(room);}catch(e){UI.toast('Could not connect: '+e.message,4000);return;}
+  if(host)G.hostId=me.id;
+  if(Sim.on)Sim.startLobby();else Me.startGPS();
+  Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike}});
+  UI.show('scrRoom');UI.room();
+  if(!host)setTimeout(()=>{if(!G.hostId)UI.toast('No host found for room '+room+'. Check the code.',4000);},3500);}
+$('#btnCreate').onclick=()=>enter(String(1000+Math.floor(Math.random()*9000)),true);
+$('#btnJoin').onclick=()=>{const c=$('#inCode').value.trim();if(!/^\d{4}$/.test(c)){UI.toast('Enter the 4-digit room code.');return;}enter(c,false);};
+function cfgChanged(){if(isHost())Host.push();}
+$('#hop').onclick=e=>{const b=e.target.closest('button[data-m]');if(!b||!isHost())return;G.mode=b.dataset.m;G.mods=Object.assign({},MODES[G.mode].defaults||{});if(G.mode==='mystery')G.cfg.rounds=3;else if(G.mode==='disaster')G.cfg.rounds=6;cfgChanged();};
+$('#mods').onchange=e=>{const k=e.target.dataset.mod;if(k&&isHost()){G.mods[k]=e.target.checked;cfgChanged();}};
+$('#selR').onchange=e=>{G.cfg.r=+e.target.value;cfgChanged();};
+$('#selBots').onchange=e=>{G.cfg.bots=+e.target.value;cfgChanged();};
+$('#selCenter').onchange=e=>{G.cfg.center=e.target.value;cfgChanged();};
+$('#selRounds').onchange=e=>{G.cfg.rounds=+e.target.value;cfgChanged();};
+$('#selTime').onchange=e=>{G.cfg.time=e.target.value;cfgChanged();};
+$('#selPoi').onchange=e=>{G.cfg.poi=e.target.value;cfgChanged();};
+$('#selChat').onchange=e=>{G.cfg.chat=e.target.value;cfgChanged();};
+$('#selChatR').onchange=e=>{G.cfg.chatR=+e.target.value;cfgChanged();};
+$('#btnDest').onclick=()=>{if(isHost())Picker.open();};
+$('#btnClrDest').onclick=()=>{G.cfg.dest=null;cfgChanged();};
+$('#pgo').onclick=()=>Picker.search($('#pq').value.trim());
+$('#pres').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;const x=Picker._r[+b.dataset.i];Picker.map.setView([+x.lat,+x.lon],16);Picker.set(+x.lat,+x.lon,x.name||x.display_name.split(',')[0]);};
+$('#pCancel').onclick=()=>{$('#picker').hidden=true;};
+$('#pOk').onclick=()=>{if(!Picker.sel){UI.toast('Pick a spot first.');return;}G.cfg.dest=Picker.sel;$('#picker').hidden=true;cfgChanged();};
+$('#btnMic').onclick=e=>{if(!Mic.stream)return;const tr=Mic.stream.getAudioTracks(),on=!(tr[0]&&tr[0].enabled);tr.forEach(t=>t.enabled=on);e.target.textContent=on?'Mic on':'Mic muted';};
+$('#btnStart').onclick=()=>Host.start();
+$('#dock').onclick=e=>{const a=e.target.closest('[data-act]');if(a)Act.do(a.dataset.act);};
+$('#btnMute').onclick=e=>{Say.on=!Say.on;e.target.textContent=Say.on?'Voice on':'Voice off';if(!Say.on)speechSynthesis.cancel();};
+$('#btnSim').onclick=()=>{const s=$('#sim');s.hidden=!s.hidden;setTimeout(()=>View.map.invalidateSize(),50);};
+$('#btnLeave').onclick=()=>{Net.send({type:'bye',id:me.id});location.reload();};
+$('#overlay').onclick=e=>{if(e.target.id==='btnBack')Host.back();};
+$('#simSpd').oninput=e=>{$('#simVal').textContent=e.target.value;if(Sim.w)Sim.w.vt=e.target.value/3.6;};
+$('#simL').onclick=()=>{if(Sim.w)Sim.w.intent='L';};$('#simS').onclick=()=>{if(Sim.w)Sim.w.intent='S';};$('#simR').onclick=()=>{if(Sim.w)Sim.w.intent='R';};
+$('#simU').onclick=()=>Sim.u();
+$('#simGo').onclick=()=>{if(Sim.w){Sim.w.v+=9;Sim.w.vt=Math.max(Sim.w.vt,Sim.w.v);}};
+loadCartoKey();
+window.addEventListener('beforeunload',()=>{if(me.room)Net.send({type:'bye',id:me.id});});
+setInterval(()=>Chat.sync(),2000);
+setInterval(()=>{UI.tick();for(const[id,p]of P)if(!p.bot&&id!==me.id&&p.t&&now()-p.t>60000&&G.status==='lobby')P.delete(id);},250);
 })();
 </script>
 </body>
