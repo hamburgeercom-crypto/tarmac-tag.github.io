@@ -33,6 +33,9 @@
     GPS-error allowance (capped at GPS_SLACK_CAP) because phone GPS cannot resolve a 3 m beam. Shout-to-fire needs the voice-band
     spike AND a recognised word (or the spike alone if the browser has no speech recognition).
   - Voice chat is a WebRTC audio mesh. Proximity volume curve, per-speaker loudness normalising and stereo pan by bearing.
+  - Spawned things (flood spots, police, supply crates, arena caches, caches' alert range) scale with class reach, so a walker is never asked
+    to cover a kilometre in a minute. Meteor blast radius also scales (50 m foot, 150 m road, 190 m open) and each rider sees their own size.
+  - Voice chat is on/off plus a volume floor. Floor 100% = always on at full volume, 0% = pure proximity. Each rider can set their own floor.
   - Teammates always see each other in team modes (needed for the Team King handover).
   - Visibility radius steps up 30 m for every started 5 km/h above 40 km/h (41 km/h = 30 m, 120 km/h = 480 m max).
 -->
@@ -129,6 +132,8 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
 <section id="scrLobby" class="scr">
   <h1 class="disp">Tarmac<br>Tag</h1>
   <p class="sub">Street games where the smart route beats the fast bike.</p>
+  <p id="connNote" class="sub" style="max-width:none;margin:-14px 0 14px;font-size:13px"></p>
+  <label class="f" id="relayWrap" hidden>Relay address (paste once, remembered on this phone)<input id="inRelay" type="text" autocomplete="off" placeholder="wss://your-worker.workers.dev"></label>
   <div class="card">
     <h2 class="disp">You</h2>
     <label class="f">Rider name<input id="inName" type="text" maxlength="14" autocomplete="nickname" placeholder="e.g. Kestrel"></label>
@@ -143,7 +148,7 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <h2 class="disp">Room</h2>
     <button id="btnCreate" class="btn" style="width:100%;margin-bottom:12px">Create a room</button>
     <div class="row"><input id="inCode" type="number" inputmode="numeric" placeholder="4-digit code" aria-label="Room code"><button id="btnJoin" class="btn alt">Join</button></div>
-    <label class="f">CARTO map key (optional, for the dark map)<input id="inCarto" type="text" autocomplete="off" placeholder="paste your free key"></label>
+    <label class="f">CARTO map key (optional, for the dark map)<input id="inCarto" type="text" autocomplete="off" placeholder="paste your free key"><small id="cartoNote" style="display:block;color:var(--orange);margin-top:6px"></small></label>
     <label class="chk"><input id="chkSim" type="checkbox"> Simulate my rider (no GPS, for testing)</label>
     <label class="chk"><input id="chkVoice" type="checkbox"> Voice commands like "challenge", "accept", "snare" (asks for the microphone)</label>
     <label class="chk"><input id="chkShout" type="checkbox"> Shout to fire in Firefight (uses the helmet mic)</label>
@@ -171,17 +176,19 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <p class="blurb" id="blurb"></p>
     <div id="mods"></div>
     <div class="row" style="margin-top:8px">
-      <label class="f">Arena radius<select id="selR"><option value="1000">1 km</option><option value="1500" selected>1.5 km</option><option value="2500">2.5 km</option></select></label>
+      <label class="f">Arena radius<select id="selR"><option value="500">500 m</option><option value="750">750 m</option><option value="1000">1 km</option><option value="1500" selected>1.5 km</option><option value="2500">2.5 km</option></select></label>
       <label class="f">Practice bots<select id="selBots"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
     </div>
     <label class="f" id="roundsWrap">Rounds<select id="selRounds"><option>2</option><option>3</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label>
     <label class="f">Time limit<select id="selTime"><option value="default">Mode default</option><option value="0">No limit</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select></label>
     <label class="f">Arena centre<select id="selCenter"><option value="gps">My location</option><option value="demo">Demo streets (no GPS)</option></select></label>
+    <label class="chk"><input id="chkMerge" type="checkbox"><span><b>Merge maps (remote play).</b> Riders in different towns play one match. Everyone stays in their own town. The host's town sets the layout and every other rider is shifted and rotated to fit its streets best. Objectives only appear where every town has a road. Landmark and fixed destinations are off.</span></label>
     <div id="destBox">
       <label class="f">Destination style<select id="selPoi"><option value="street">Street intersections</option><option value="tourist">Tourist spots and landmarks</option><option value="food">Food and drink (e.g. McDonald's)</option><option value="any">Any named place</option></select></label>
       <div id="fixedDest" class="row" style="align-items:center;margin-bottom:12px"><button class="btn alt" id="btnDest" style="flex:0 0 auto;padding:10px 12px;min-height:44px;font-size:16px">Set fixed destination</button><span id="destLbl" style="color:var(--dim)"></span><button class="btn ghost" id="btnClrDest" style="flex:0 0 auto;padding:8px 12px;min-height:40px;font-size:15px" hidden>Clear</button></div>
     </div>
-    <label class="f">Voice chat<select id="selChat"><option value="off">Off</option><option value="prox">Proximity: louder when closer</option><option value="always">Always on, full volume</option></select></label>
+    <label class="f">Voice chat<select id="selChat"><option value="off">Off</option><option value="on">On</option></select></label>
+    <label class="f" id="floorWrap">Quietest volume: <span id="floorVal">20</span>% <small>(0% = only hear riders who are close, 100% = everyone at full volume)</small><input id="rngFloor" type="range" min="0" max="100" step="5" value="20"></label>
     <label class="f" id="chatRWrap">Proximity range<select id="selChatR"><option value="200">200 m</option><option value="400">400 m</option><option value="800">800 m</option></select></label>
     <button id="btnStart" class="btn" style="width:100%">Start game</button>
     <p id="waitMsg" class="sub" style="margin:10px 0 0" hidden>Waiting for the host to start.</p>
@@ -206,7 +213,7 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <div id="simInfo" style="color:var(--dim);font-size:14px;margin-top:6px">Roads are drawn on the map. Pick a turn for the next junction.</div>
     <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="simL">Left</button><button class="btn ghost" id="simS">Straight</button><button class="btn ghost" id="simR">Right</button><button class="btn ghost" id="simU">U-turn</button><button class="btn pink" id="simGo">Launch</button></div>
   </div>
-  <div id="dock"><span id="acts" style="display:contents"></span><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnSim" hidden>Sim</button><button class="btn ghost" id="btnLeave">Leave</button></div>
+  <div id="dock"><span id="acts" style="display:contents"></span><label id="floorDock" hidden title="Your own quietest chat volume" style="display:flex;align-items:center;gap:6px;flex:1 1 150px;font-size:12px;color:var(--dim)">Chat floor<input id="rngFloorMine" type="range" min="0" max="100" step="5" value="20" style="width:100%"></label><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnSim" hidden>Sim</button><button class="btn ghost" id="btnLeave">Leave</button></div>
 </section>
 
 <div id="picker" hidden>
@@ -220,6 +227,7 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
 <div id="toast" role="status"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="config.js"></script>   <!-- optional: your own config.js (see config.example.js) so updating this file never loses your relay address -->
 <script>
 (()=>{'use strict';
 
@@ -231,23 +239,30 @@ const CFG={
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
   cartoKey:'',           // free CARTO basemap key (https://carto.com/basemaps/apikey/). Also accepted as ?carto=KEY, and remembered on that phone.
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
-  overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
+  overpassUrl:'https://whasking.hamburgeer-com.workers.dev/overpass',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
   turnUrl:'https://whasking.hamburgeer-com.workers.dev/turn',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
   boomAccel:3.5,boomMs:7000,
   trailMs:120000,trailGraceMs:3000,
   countdownMs:15000,parkedKmh:8
 };
 CFG.maxRadius=Math.ceil((CFG.maxKmh-CFG.stealthKmh)/CFG.stepKmh)*CFG.stepMeters;
-if(typeof location!=='undefined'){const q=new URLSearchParams(location.search);   // share links like  ?relay=wss://your-worker.workers.dev&turn=https://your-worker.workers.dev/turn
-  if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');if(q.get('overpass'))CFG.overpassUrl=q.get('overpass');
-  if(q.get('carto')){try{localStorage.setItem('tarmac.carto',q.get('carto'));}catch(e){}CFG.cartoKey=q.get('carto');}}
+{const C=(typeof window!=='undefined'&&window.TARMAC_CONFIG)||{},q=new URLSearchParams(typeof location!=='undefined'?location.search:''),
+  ls=k=>{try{return localStorage.getItem('tarmac.'+k)||'';}catch(e){return'';}},sv=(k,v)=>{try{localStorage.setItem('tarmac.'+k,v);}catch(e){}};
+  const from=k=>{const u=q.get(k);if(u){sv(k,u);return u;}return C[k]||ls(k);};      // link parameter (remembered on that phone), then config.js, then what the phone remembered
+  const relay=from('relay');if(relay){CFG.transport='websocket';CFG.wsUrl=relay;}
+  const turn=from('turn');if(turn)CFG.turnUrl=turn;
+  const ov=from('overpass');if(ov)CFG.overpassUrl=ov;
+  const ck=from('carto');if(ck)CFG.cartoKey=ck;}
+const VER='2026-10-22.5';   // both phones must run the same build. A mismatch is reported on screen.
 const PROFILE={ // per-class speed bands (km/h). road = your original spec.
   road:{stealth:40,step:5,stepM:30,flare:70,blind:80,max:120,boom:3.5,minBoom:8,snap:'road'},
   foot:{stealth:12,step:3,stepM:30,flare:30,blind:36,max:45,boom:2.2,minBoom:3,snap:'all'},
   open:{stealth:50,step:10,stepM:30,flare:100,blind:120,max:160,boom:3.5,minBoom:8,snap:'none'}};
-for(const k in PROFILE){const q=PROFILE[k];q.maxR=Math.ceil((q.max-q.stealth)/q.step)*q.stepM;}
+for(const k in PROFILE){const q=PROFILE[k];q.maxR=Math.ceil((q.max-q.stealth)/q.step)*q.stepM;q.reach=q.stealth/40;}   // reach: how far a class can sensibly be asked to travel (road 1, foot 0.3, open 1.25)
+PROFILE.foot.meteorR=50;PROFILE.road.meteorR=150;PROFILE.open.meteorR=190;      // blast radius: 50 m is a good pace on foot, faster classes get a bigger circle instead of a shorter fuse
 const clsOf=b=>b==='foot'?'foot':b==='open'?'open':'road';
 const prof=p=>PROFILE[clsOf(p&&p.bike)];
+const reachOf=p=>prof(p).reach;
 const BIKE_LABEL={low:'Low-CC',high:'High-CC',foot:'Foot/Cycle',open:'Open'};
 const WEAPONS={
   shotgun:{name:'Shotgun',cool:12,range:100,half:2},
@@ -374,6 +389,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     else if(ex.p&&!pth){ex.p=false;const bx=B.adj.find(e=>e.to===a);if(bx)bx.p=false;}
     A.names.add(name);B.names.add(name);this.segs.push({a,b,name,p:pth});},
   edgesFor(n,ap){const l=ap?n.adj:n.adj.filter(e=>!e.p);return l.length?l:n.adj;},
+  keyFor(lat,lon,r){return lat.toFixed(5)+','+lon.toFixed(5)+','+r;},
   compact(js){const out=[];for(const w of js.elements||[]){if(w.type!=='way'||!w.geometry||!w.nodes)continue;
       out.push({n:(w.tags&&(w.tags.name||w.tags.ref))||'unnamed road',p:/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test((w.tags&&w.tags.highway)||'')?1:0,g:w.nodes.map((id,i)=>[id,w.geometry[i]?w.geometry[i].lat:null,w.geometry[i]?w.geometry[i].lon:null])});}
     return out;},
@@ -428,7 +444,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
     try{const w=await Promise.any(tries);all.abort();return w;}
     catch(e){throw new Error(errs.join(' | '));}},
   async load(lat,lon,r,net,allowSynth){
-    net=net||{paths:false,roadJ:true};this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
+    net=net||{paths:false,roadJ:true};this.key=this.keyFor(lat,lon,r);this.roadJ=net.roadJ!==false;this.failed=null;this.synthetic=false;this.reset();Geo.set(lat,lon);
     const types='trunk|primary|secondary|tertiary|unclassified|residential|living_street|primary_link|secondary_link|tertiary_link'+(net.paths?'|footway|path|pedestrian|cycleway|steps|track|bridleway':'');
     const deadline=Date.now()+100000;let err=null,got=false,usedR=r,fromCache=false;
     for(const rr of[r,Math.round(r*.6),Math.round(r*.35)]){                    // each retry covers a smaller area
@@ -472,7 +488,7 @@ const Graph={ready:false,nodes:new Map(),segs:[],cell:60,grid:new Map(),junc:[],
       for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+','+y;(this.grid.get(k)||this.grid.set(k,[]).get(k)).push(i);}});
     for(const n of this.nodes.values()){
       const names=[...n.names].filter(s=>s!=='unnamed road');
-      n.label=names.length>1?names[0]+' and '+names[1]:names.length?names[0]+' and a side road':'an unnamed junction';
+      n.label=names.length>1?names[0]+' and '+names[1]:names.length?names[0]+' and a side road':'an unnamed junction';n.lbl0=n.label;
       const deg=this.roadJ?n.adj.filter(e=>!e.p).length:n.adj.length;
       if(deg>=3&&hyp(n.x,n.y)<=r)this.junc.push(n);}
     if(!this.junc.length)this.junc=[...this.nodes.values()].filter(n=>n.adj.length>=2);
@@ -525,7 +541,7 @@ function pointAlong(pts,d){let acc=0;for(let i=1;i<pts.length;i++){const l=hyp(p
 class Walker{
   constructor(from,to){this.from=from;this.to=to;this.s=0;this.v=0;this.vt=0;this.acc=0;this.intent=null;this.bot=false;this.ap=false;}
   step(dt){
-    const v0=this.v,dv=this.vt-this.v,m=2.5*dt;this.v+=clamp(dv,-m*1.6,m);this.acc=(this.v-v0)/dt;
+    const v0=this.v,dv=this.vt-this.v,m=(this.macc||2.5)*dt;this.v+=clamp(dv,-m*1.6,m);this.acc=(this.v-v0)/dt;
     let d=this.v*dt;
     while(d>0){const A=Graph.nodes.get(this.from),B=Graph.nodes.get(this.to),rem=hyp(B.x-A.x,B.y-A.y)-this.s;
       if(d<rem){this.s+=d;d=0;}else{d-=Math.max(rem,0);this.arrive();}}}
@@ -560,7 +576,7 @@ const Sfx={ctx:null,
   ping(){this.tone(880,880,.18,'square',.2);},
   alarm(){this.tone(660,440,.5,'square',.25);}};
 const Say={on:true,q:[],busy:false,tok:0,last:new Map(),
-  say(text,o={}){const pri=o.pri||1,key=o.key||text,t=now();
+  say(text,o={}){text=tok(text);const pri=o.pri||1,key=o.key||text,t=now();
     if(o.cd&&t-(this.last.get(key)||0)<o.cd)return;this.last.set(key,t);UI.caption(text);
     if(!this.on||!('speechSynthesis' in window))return;
     if(pri>=3){speechSynthesis.cancel();this.tok++;this.q=[];this.busy=false;}else if(this.q.length>=3)this.q.shift();
@@ -598,7 +614,7 @@ const Voice={on:false,cmd:false,srOK:false,lastFire:0,k:-1,hit:false,lc:{},
   fire(){if(now()-this.lastFire<700)return;this.lastFire=now();this.cmd=true;Act.do('fire');this.cmd=false;}};
 
 /* ===== proximity voice chat: WebRTC audio mesh, per-speaker loudness normalising, distance gain, stereo pan by bearing ===== */
-const Chat={peers:new Map(),on:false,ice:[{urls:'stun:stun.cloudflare.com:3478'}],tm:null,mix:null,
+const Chat={peers:new Map(),on:false,floorLocal:null,ice:[{urls:'stun:stun.cloudflare.com:3478'}],tm:null,mix:null,
   async start(){if(this.on||G.cfg.chat==='off')return;
     try{const s=await Mic.get();Sfx.unlock();const c=Sfx.ctx;this.mix=c.createGain();const comp=c.createDynamicsCompressor();this.mix.connect(comp);comp.connect(c.destination);
       if(CFG.turnUrl){try{const j=await(await fetch(CFG.turnUrl)).json();if(j.iceServers)this.ice=j.iceServers;}catch(e){}}
@@ -620,13 +636,13 @@ const Chat={peers:new Map(),on:false,ice:[{urls:'stun:stun.cloudflare.com:3478'}
     const src=c.createMediaStreamSource(stream);o.an=c.createAnalyser();o.an.fftSize=512;o.td=new Uint8Array(o.an.fftSize);o.gain=c.createGain();o.gain.gain.value=0;
     o.pan=c.createStereoPanner?c.createStereoPanner():null;src.connect(o.an);src.connect(o.gain);
     if(o.pan){o.gain.connect(o.pan);o.pan.connect(this.mix);}else o.gain.connect(this.mix);},
-  update(){const m=P.get(me.id);if(!m||!Sfx.ctx)return;const R=G.cfg.chatR,mode=G.cfg.chat,t=Sfx.ctx.currentTime;
+  update(){const m=P.get(me.id);if(!m||!Sfx.ctx)return;const R=G.cfg.chatR,off=G.cfg.chat==='off',fl=clamp((this.floorLocal!=null?this.floorLocal:G.cfg.chatFloor)/100,0,1),t=Sfx.ctx.currentTime;
     for(const[id,o]of this.peers){if(!o.gain)continue;const p=P.get(id);
       o.an.getByteTimeDomainData(o.td);let sum=0;for(const v of o.td){const x=(v-128)/128;sum+=x*x;}const rms=Math.sqrt(sum/o.td.length);
       if(rms>.01)o.norm=clamp(o.norm*.85+(.12/rms)*.15,.4,4);                              // normalise every speaker to one baseline loudness
-      let g=mode==='off'?0:1,pan=0;
-      if(p&&p.sx!=null&&m.sx!=null){const d=hyp(p.sx-m.sx,p.sy-m.sy);if(mode==='prox')g=d>=R?0:Math.pow(1-d/R,1.6);
-        pan=clamp(Math.sin(angDiff(bearingXY(p.sx-m.sx,p.sy-m.sy),m.hdg||0)*D2R),-1,1)*(mode==='prox'?1:.4);}
+      let g=off?0:1,pan=0;
+      if(p&&p.sx!=null&&m.sx!=null){const d=hyp(p.sx-m.sx,p.sy-m.sy);g=off?0:fl+(1-fl)*(d>=R?0:Math.pow(1-d/R,1.6));   // the floor keeps conversation possible, the rest still tracks distance
+        pan=clamp(Math.sin(angDiff(bearingXY(p.sx-m.sx,p.sy-m.sy),m.hdg||0)*D2R),-1,1)*(.4+.6*(1-fl));}
       o.gain.gain.setTargetAtTime(g*o.norm,t,.1);if(o.pan)o.pan.pan.setTargetAtTime(pan,t,.1);}}};
 
 /* ================= network (pluggable realtime transport) ================= */
@@ -647,7 +663,7 @@ const Net={ch:null,ws:null,sb:null,
 /* ================= state ================= */
 const me={id:rid(),name:'',bike:'low',room:''};
 const P=new Map();
-const newG=()=>({status:'lobby',mode:'tron',mods:{},cfg:{r:1500,bots:0,center:'gps',chat:'prox',chatR:400,poi:'street',dest:null,time:'default',rounds:6},hostId:null,arena:null,startAt:0,t0:0,pl:{},d:{},result:null,seq:0});
+const newG=()=>({status:'lobby',mode:'tron',mods:{},cfg:{r:1500,bots:0,center:'gps',merge:false,chat:'on',chatFloor:20,chatR:400,poi:'street',dest:null,time:'default',rounds:6},hostId:null,arena:null,startAt:0,t0:0,pl:{},d:{},result:null,seq:0});
 let G=newG();
 const isHost=()=>G.hostId===me.id;
 const rl=id=>(G.pl[id]||{}).role,tmOf=id=>(G.pl[id]||{}).team;
@@ -658,15 +674,16 @@ const pingIn=()=>Math.max(0,Math.ceil(((G.d&&G.d.nextPing)-now())/1000));
 const nm=id=>(P.get(id)||{}).name||'Rider';
 const pd=(a,b)=>hyp(a.sx-b.sx,a.sy-b.sy);
 const clockDir=(from,to)=>{const rel=(bearingXY(to.sx-from.sx,to.sy-from.sy)-(from.hdg||0)+360)%360;return(Math.round(rel/30)||12)+" o'clock";};
-const stName=p=>p.st&&p.st!=='unnamed road'?p.st:'an unnamed road';
+const stName=p=>G.merge?'{S:'+Math.round(p.sx)+','+Math.round(p.sy)+'}':(p.st&&p.st!=='unnamed road'?p.st:'an unnamed road');
 
 function applyPos(m,seg){
   let p=P.get(m.i);if(!p){p={id:m.i,name:m.n,bike:m.k,bot:!!m.b};P.set(m.i,p);}
   Object.assign(p,{aim:m.am,ac:m.ac,name:m.n,bike:m.k,lat:m.lat,lon:m.lon,sla:m.sla,slo:m.slo,spd:m.spd,hdg:m.hdg,acc:m.acc,boomUntil:m.bu||0,st:m.st,seg:seg==null?null:seg,t:now()});
-  [p.x,p.y]=Geo.xy(m.lat,m.lon);[p.sx,p.sy]=Geo.xy(m.sla,m.slo);p.fl=(m.fl||[]).map(q=>Geo.xy(q[0],q[1]));
+  p.hdg0=m.hdg;p.aim0=m.am;p.hdg=hdgV(m.i,m.hdg);p.aim=hdgV(m.i,m.am);
+  [p.x,p.y]=vxy(m.i,m.lat,m.lon);[p.sx,p.sy]=vxy(m.i,m.sla,m.slo);p.fl=(m.fl||[]).map(q=>vxy(m.i,q[0],q[1]));
   if(p.rx==null){p.rx=p.sx;p.ry=p.sy;}
   if(G.mode==='tron'&&G.status!=='lobby'&&(G.pl[p.id]||{}).alive!==false)Trails.add(p);}
-function rebase(){for(const p of P.values()){if(p.lat==null)continue;[p.x,p.y]=Geo.xy(p.lat,p.lon);[p.sx,p.sy]=Geo.xy(p.sla,p.slo);p.rx=p.sx;p.ry=p.sy;}Me.last=null;Me.la=null;Trails.m.clear();}
+function rebase(){for(const p of P.values()){if(p.lat==null)continue;[p.x,p.y]=vxy(p.id,p.lat,p.lon);[p.sx,p.sy]=vxy(p.id,p.sla,p.slo);if(p.hdg0!=null){p.hdg=hdgV(p.id,p.hdg0);p.aim=hdgV(p.id,p.aim0);}p.rx=p.sx;p.ry=p.sy;}Me.last=null;Me.la=null;Trails.m.clear();}
 /* Snap -> publish (used by GPS, sim rider and bots). Broadcast: lat, lon, snapped point, heading, speed, accel, flare path */
 function publish(src,lat,lon,kmh,hdg,acc,bu,aim,ac){
   const pr=prof(src),ap=pr.snap==='all',[x,y]=Geo.xy(lat,lon),old=P.get(src.id);
@@ -701,7 +718,7 @@ const Me={last:null,la:null,boomUntil:0,boomCool:0,watch:null,
     this.after(P.get(me.id));},
   after(p){ // client-side voice hints that only need my own position
     if(G.mode==='tron'&&G.status==='running'&&(G.pl[me.id]||{}).alive!==false&&(p.seg!=null||clsOf(me.bike)==='open')&&p.spd>prof(me).stealth*.15){
-      const h=(p.hdg||0)*D2R,pts=p.seg!=null?Graph.walk(p.sx,p.sy,p.seg,p.hdg||0,2,clsOf(me.bike)==='foot').pts:[[p.sx,p.sy],[p.sx+Math.sin(h)*60,p.sy+Math.cos(h)*60]],t=now();
+      const h=(p.hdg||0)*D2R,pl=Virt.toLocal([p.sx,p.sy]),pts=p.seg!=null?Graph.walk(pl[0],pl[1],p.seg,p.hdg0!=null?p.hdg0:(p.hdg||0),2,clsOf(me.bike)==='foot').pts.map(q=>Virt.toV(q)):[[p.sx,p.sy],[p.sx+Math.sin(h)*60,p.sy+Math.cos(h)*60]],t=now();
       for(const q of P.values()){if(q.id===me.id)continue;const tr=Trails.get(q.id);if(!tr)continue;
         for(const d of[20,35,50]){const s=pointAlong(pts,d);if(Trails.hit(tr,s[0],s[1],t)){Say.say('Caution: Grid Wall 50 metres ahead.',{pri:2,cd:6000,key:'wall'});return;}}}}}};
 function onBoom(m){const p=P.get(m.id);if(p)p.boomUntil=m.until;Sfx.boom();Say.say('Sonic Boom detected. Target '+m.n+' position exposed.',{pri:3});}
@@ -757,6 +774,9 @@ function assignTeams(ps){const hi=shuffle(ps.filter(p=>p.bike==='high')),lo=shuf
   [...hi,...lo].forEach(p=>{out[p.id]=['red','blue'][i++%2];});return out;}
 const farJunction=(cx,cy,lo,hi)=>{const c=Graph.junc.filter(n=>{const d=hyp(n.x-cx,n.y-cy);return d>=lo&&d<=hi;});return pick(c.length?c:Graph.junc);};
 const dest=n=>({id:n.id,x:n.x,y:n.y,label:n.label});
+function spotNear(a,lo,hi,others,gap,keepOut){const k=reachOf(a),l=Math.max(40,lo*k),h=Math.max(l+50,hi*k);      // distances shrink for slower classes
+  return shuffle(Graph.junc.filter(n=>{const d=hyp(n.x-a.sx,n.y-a.sy);return d>=l&&d<=h&&hyp(n.x,n.y)<G.arena.r*.95&&others.every(q=>hyp(q.x-n.x,q.y-n.y)>gap*Math.max(k,.4))&&(!keepOut||keepOut(n));}))[0]||null;}
+const nearestJ=a=>Graph.junc.slice().sort((u,v)=>hyp(u.x-a.sx,u.y-a.sy)-hyp(v.x-a.sx,v.y-a.sy)).find(n=>hyp(n.x-a.sx,n.y-a.sy)>40)||pick(Graph.junc);
 function fixedDest(c){const[x,y]=Geo.xy(c.lat,c.lon),nd=Graph.nearNode(x,y);return{id:nd.id,x,y,label:c.label||'the chosen spot'};}
 function pickDest(cx,cy,lo,hi){                                   // landmark destinations when the host asks for them, else an intersection
   const pref=G.cfg.poi||'street';
@@ -768,23 +788,95 @@ function pickDest(cx,cy,lo,hi){                                   // landmark de
   return dest(farJunction(cx,cy,lo,hi));}
 const shortFor=(p,wp,nd)=>clsOf(p.bike)==='open'?hyp(p.sx-wp.x,p.sy-wp.y):Graph.shortest(nd.id,wp.id);
 
+const BOT_BANDS={foot:[[.5,4,6],[.35,8,11],[.15,14,22]],low:[[.5,15,30],[.35,30,45],[.15,45,62]],high:[[.4,18,35],[.4,35,55],[.2,55,85]],open:[[.4,30,50],[.4,50,80],[.2,80,110]]};   // km/h: walk / jog / pedal, town / main road / open road, ...
+const BOT_ACC={foot:1.2,low:2.2,high:3,open:3};
+function botSpeed(bike){if(Math.random()<.08)return 0;let r=Math.random();const B=BOT_BANDS[bike]||BOT_BANDS.low;for(const[w,lo,hi]of B){if((r-=w)<=0)return lo+Math.random()*(hi-lo);}return B[B.length-1][1];}
 const Bots={list:[],
-  spawn(n){this.clear();const names=['Maple','Birch','Cedar','Rowan','Aspen','Hazel'],cs=Graph.junc.filter(j=>hyp(j.x,j.y)<300);
-    for(let i=0;i<n;i++){const nd=pick(cs.length?cs:Graph.junc),w=new Walker(nd.id,pick(Graph.edgesFor(nd,false)).to);w.bot=true;
-      const b={id:'bot'+i,name:'Bot '+names[i%6],bike:i%2?'high':'low',bot:true,w,next:0,nextFire:0};this.list.push(b);this.emit(b);}},
+  spawn(n){this.clear();const names=['Maple','Birch','Cedar','Rowan','Aspen','Hazel'],cs=Graph.junc.filter(j=>hyp(j.x,j.y)<300),
+      hb=[...P.values()].filter(q=>!q.bot).map(q=>q.bike);                                                   // bots copy the classes of the real riders
+    for(let i=0;i<n;i++){const bike=hb.length?hb[i%hb.length]:(i%2?'high':'low'),ap=clsOf(bike)==='foot',nd=pick(cs.length?cs:Graph.junc),w=new Walker(nd.id,pick(Graph.edgesFor(nd,ap)).to);w.bot=true;w.ap=ap;w.macc=BOT_ACC[bike]||2.5;
+      const b={id:'bot'+i,name:'Bot '+names[i%6],bike,bot:true,w,next:0,nextFire:0};this.list.push(b);this.emit(b);}},
   clear(){for(const b of this.list)P.delete(b.id);this.list=[];},
   emit(b){const q=b.w.pos(),[la,lo]=Geo.ll(q.x,q.y);publish(b,la,lo,b.w.v*3.6,q.hdg,b.w.acc||0,0);},
   step(dt){const t=now();for(const b of this.list){
-    if(G.status!=='running')b.w.vt=0;else if(t>b.next){b.next=t+8000+Math.random()*8000;b.w.vt=(25+Math.random()*(b.bike==='high'?60:35))/3.6;}
+    if(G.status!=='running')b.w.vt=0;else if(t>b.next){b.next=t+8000+Math.random()*8000;b.w.vt=botSpeed(b.bike)/3.6;}
     b.w.step(dt);this.emit(b);}}};
 
+/* ===== map merging: riders in different towns play one match ===== */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const Virt={on:false,th:0,tx:0,ty:0,c:1,s:0,                     // my transform: my town (metres around my anchor) -> the shared host frame
+  set(tf){this.th=tf.th;this.tx=tf.tx;this.ty=tf.ty;this.c=Math.cos(tf.th*D2R);this.s=Math.sin(tf.th*D2R);},
+  toV(q){return this.on?[this.c*q[0]-this.s*q[1]+this.tx,this.s*q[0]+this.c*q[1]+this.ty]:q;},
+  toLocal(v){if(!this.on)return v;const x=v[0]-this.tx,y=v[1]-this.ty;return[this.c*x+this.s*y,-this.s*x+this.c*y];}};
+function vxy(id,lat,lon){const M=G.merge;if(!M)return Geo.xy(lat,lon);const an=M.an[id]||M.an[G.hostId];if(!an)return Geo.xy(lat,lon);
+  const L=[(lon-an.lon)*111320*Math.cos(an.lat*D2R),(lat-an.lat)*110540],tf=M.tf[id];if(!tf)return L;
+  const c=Math.cos(tf.th*D2R),s=Math.sin(tf.th*D2R);return[c*L[0]-s*L[1]+tf.tx,s*L[0]+c*L[1]+tf.ty];}
+const hdgV=(id,h)=>{const tf=G.merge&&G.merge.tf&&G.merge.tf[id];return tf?(((h-tf.th)%360)+360)%360:h;};
+function ownJ(x,y){const l=Virt.toLocal([x,y]);let b=null,bd=450;for(const n of(Graph.allJunc||Graph.junc)){const d=hyp(n.x-l[0],n.y-l[1]);if(d<bd){bd=d;b=n;}}return b?(b.lbl0||b.label):'the grid';}
+function ownS(x,y){const l=Virt.toLocal([x,y]);const sn=Graph.segs.length?Graph.snap(l[0],l[1],0,0,null,true):null;return sn&&sn.seg!=null?Graph.segs[sn.seg].name:'an unnamed road';}
+function tok(t){if(typeof t!=='string'||t.indexOf('{')<0)return t;return t.replace(/\{J:(-?\d+),(-?\d+)\}/g,(m,x,y)=>ownJ(+x,+y)).replace(/\{S:(-?\d+),(-?\d+)\}/g,(m,x,y)=>ownS(+x,+y));}   // place names are resolved on each phone from its own town
+const b64enc=u8=>{let s='';for(let i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]);return btoa(s);};
+const b64dec=str=>{const s=atob(str),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u;};
+function alignJunctions(Hs,Js,r){      // find rotation + shift of Js that lays the most junctions on Hs (coarse search, then fine)
+  const S=Math.min(Js.length,300),st=Math.max(1,Math.floor(Js.length/S)),J=[];for(let i=0;i<Js.length&&J.length<S;i+=st)J.push(Js[i]);
+  const G0=10,EXT=Math.ceil(r+700),W=Math.ceil(2*EXT/G0);
+  const occ=tol=>{const g=new Uint8Array(W*W),rd=Math.ceil(tol/G0);for(const q of Hs){const cx=Math.floor((q[0]+EXT)/G0),cy=Math.floor((q[1]+EXT)/G0);
+      for(let dx=-rd;dx<=rd;dx++)for(let dy=-rd;dy<=rd;dy++){if(dx*dx+dy*dy>rd*rd+1)continue;const x=cx+dx,y=cy+dy;if(x>=0&&y>=0&&x<W&&y<W)g[y*W+x]=1;}}return g;};
+  const sc=(g,th,tx,ty)=>{const c=Math.cos(th*D2R),s=Math.sin(th*D2R);let n=0;
+    for(const q of J){const x=c*q[0]-s*q[1]+tx,y=s*q[0]+c*q[1]+ty,cx=Math.floor((x+EXT)/G0),cy=Math.floor((y+EXT)/G0);if(cx>=0&&cy>=0&&cx<W&&cy<W&&g[cy*W+cx])n++;}return n;};
+  const g1=occ(25);let cands=[];
+  for(let th=0;th<360;th+=15)for(let tx=-450;tx<=450;tx+=30)for(let ty=-450;ty<=450;ty+=30)cands.push([sc(g1,th,tx,ty),th,tx,ty]);
+  cands.sort((a,b)=>b[0]-a[0]);cands=cands.slice(0,8);
+  const g2=occ(12);let best=null;
+  for(const[,th0,tx0,ty0]of cands)for(let th=th0-15;th<=th0+15;th+=3)for(let tx=tx0-30;tx<=tx0+30;tx+=6)for(let ty=ty0-30;ty<=ty0+30;ty+=6){const n=sc(g2,th,tx,ty);if(!best||n>best.score)best={score:n,th:((th%360)+360)%360,tx,ty};}
+  best.n=J.length;return best;}
+const Merge={id:null,data:new Map(),
+  maskOf(r){const R=r+100,N=Math.ceil(2*R/20),bits=new Uint8Array(Math.ceil(N*N/8));
+    const mark=(x,y)=>{const cx=Math.floor((x+R)/20),cy=Math.floor((y+R)/20);if(cx<0||cy<0||cx>=N||cy>=N)return;const i=cy*N+cx;bits[i>>3]|=1<<(i&7);};
+    for(const sg of Graph.segs){const A=Graph.nodes.get(sg.a),B=Graph.nodes.get(sg.b),L=hyp(B.x-A.x,B.y-A.y),k=Math.max(1,Math.ceil(L/10));for(let i=0;i<=k;i++)mark(A.x+(B.x-A.x)*i/k,A.y+(B.y-A.y)*i/k);}
+    return{R,N,bits};},
+  async onReq(m){const p=P.get(me.id);                          // a joiner: load my own town and report where my roads are
+    if(!p||p.lat==null){Net.send({type:'mergeData',id:m.id,failed:'no GPS fix'});return;}
+    UI.toast('The host is merging maps. Loading your streets…',8000);
+    await Graph.load(p.lat,p.lon,m.r,m.net,m.allowSynth);
+    if(Graph.failed){Net.send({type:'mergeData',id:m.id,failed:Graph.failed});return;}
+    const mk=this.maskOf(m.r),junc=[];for(const n of Graph.junc.slice(0,800))junc.push(Math.round(n.x),Math.round(n.y));
+    Net.send({type:'mergeData',id:m.id,anchor:{lat:p.lat,lon:p.lon},R:mk.R,N:mk.N,mask:b64enc(mk.bits),junc});},
+  onData(m){if(m.id===this.id)this.data.set(m.from,m);},
+  solve(hostJ,datas,r){                                          // pure maths: alignment per joiner, then the places every town can host
+    const tf={},info=[],hp=hostJ.map(n=>[n.x,n.y]);
+    for(const d of datas){const J=[];for(let i=0;i+1<d.junc.length;i+=2)J.push([d.junc[i],d.junc[i+1]]);
+      const al=alignJunctions(hp,J,r);tf[d.id]={th:al.th,tx:al.tx,ty:al.ty};info.push({id:d.id,pct:Math.round(100*al.score/Math.max(1,al.n))});}
+    const inv=(t,v)=>{const c=Math.cos(t.th*D2R),s=Math.sin(t.th*D2R),x=v[0]-t.tx,y=v[1]-t.ty;return[c*x+s*y,-s*x+c*y];};
+    const onRoad=(d,q,rad)=>{const cx=Math.floor((q[0]+d.R)/20),cy=Math.floor((q[1]+d.R)/20);
+      for(let dx=-rad;dx<=rad;dx++)for(let dy=-rad;dy<=rad;dy++){const X=cx+dx,Y=cy+dy;if(X<0||Y<0||X>=d.N||Y>=d.N)continue;const i=Y*d.N+X;if(d.bits[i>>3]&(1<<(i&7)))return true;}return false;};
+    let common=[],tol=1;
+    for(const rad of[1,2]){tol=rad;common=hostJ.filter(n=>datas.every(d=>onRoad(d,inv(tf[d.id],[n.x,n.y]),rad)));if(common.length>=8)break;}
+    return{tf,info,common,tol,poor:common.length<8};},
+  async run(c,r,net){                                            // the host: gather every rider's town, align them to the host's, keep only shared places
+    const humans=[...P.values()].filter(q=>!q.bot&&q.id!==me.id);this.id=rid();this.data=new Map();
+    Net.send({type:'mergeReq',id:this.id,r,net,allowSynth:Sim.on||G.cfg.center==='demo'});
+    UI.toast('Merging maps: waiting for '+humans.length+' rider(s) to load their streets…',10000);
+    const t0=now();while(this.data.size<humans.length&&now()-t0<100000)await sleep(300);
+    const miss=humans.filter(q=>!this.data.has(q.id)),bad=humans.filter(q=>this.data.has(q.id)&&this.data.get(q.id).failed);
+    if(miss.length||bad.length){UI.toast('Map merge stopped. '+(miss.length?miss.map(q=>q.name).join(', ')+' did not answer. ':'')+bad.map(q=>q.name+': '+this.data.get(q.id).failed).join('; '),9000);return false;}
+    const datas=humans.map(q=>{const d=this.data.get(q.id);return{id:q.id,junc:d.junc,R:d.R,N:d.N,bits:b64dec(d.mask),anchor:d.anchor};});
+    Graph.allJunc=Graph.junc.slice();
+    const sol=this.solve(Graph.junc,datas,r),an={},tf=sol.tf;an[me.id]={lat:c.lat,lon:c.lon};tf[me.id]={th:0,tx:0,ty:0};for(const d of datas)an[d.id]=d.anchor;
+    if(!sol.poor)Graph.junc=sol.common;
+    for(const n of Graph.nodes.values())n.label='{J:'+Math.round(n.x)+','+Math.round(n.y)+'}';                    // host-town names become tokens each phone resolves in its own town
+    G.merge={id:this.id,an,tf,info:sol.info.map(i=>({n:nm(i.id),pct:i.pct})),shared:sol.poor?0:sol.common.length};
+    Virt.on=true;Virt.set(tf[me.id]);rebase();
+    UI.toast(sol.poor?'Maps overlap poorly: objectives may land off-road for some riders.':'Maps merged. '+sol.common.length+' shared locations. Overlap: '+G.merge.info.map(i=>i.n+' '+i.pct+'%').join(', '),9000);
+    return true;}};
 const Host={tm:null,n:0,
-  push(){G.seq++;Net.send({type:'game',g:G});UI.sync();},
+  push(){G.seq++;Net.send({type:'game',g:G,ver:VER});UI.sync();},
   async start(){
     if(G.status!=='lobby')return;const M=MODES[G.mode],humans=[...P.values()].filter(p=>!p.bot),missing=humans.filter(p=>p.sx==null);
     if(missing.length){UI.toast('Waiting for a GPS fix from '+missing.map(p=>p.name).join(', '),4000);return;}
     if(humans.length+G.cfg.bots<M.min){UI.toast(M.name+' needs '+M.min+'+ riders. Add practice bots to test.',4000);return;}
     if(G.cfg.center==='gps'&&P.get(me.id).sx==null){UI.toast('No GPS fix yet.');return;}
+    if(G.cfg.merge){G.cfg.poi='street';G.cfg.dest=null;}                  // landmarks and fixed spots only exist in one town
     $('#btnStart').disabled=true;UI.toast('Loading streets…',5000);
     const h=P.get(me.id);let c=G.cfg.center==='demo'?DEMO:{lat:h.lat,lon:h.lon},r=G.cfg.r;
     const fixed=(G.mode==='gridlock'&&!G.mods.duel&&G.cfg.dest)?G.cfg.dest:null;
@@ -795,6 +887,8 @@ const Host={tm:null,n:0,
     const hasFoot=humans.some(q=>clsOf(q.bike)==='foot'),nRoad=humans.filter(q=>clsOf(q.bike)==='road').length+G.cfg.bots,net={paths:hasFoot,roadJ:nRoad>0||!hasFoot};
     await Graph.load(c.lat,c.lon,r,net,G.cfg.center==='demo'||Sim.on);rebase();
     if(Graph.failed){UI.toast('Could not load street data ('+Graph.failed+'). Check the connection, try a smaller arena, or deploy the updated Worker (it caches street data). Nothing was started.',9000);$('#btnStart').disabled=false;return;}
+    if(G.cfg.merge&&humans.length>1){const ok=await Merge.run(c,r,net);if(!ok){$('#btnStart').disabled=false;return;}}
+    else{G.merge=null;Virt.on=false;Virt.set({th:0,tx:0,ty:0});Graph.allJunc=null;}
     G.arena={lat:c.lat,lon:c.lon,r,id:rid(),net};Arena.id=G.arena.id;
     G.pl={};G.d={};G.result=null;H.reset();Trails.m.clear();Bots.spawn(G.cfg.bots);
     M.setup();{const lim=timeLimitMin();G.d.dur=lim?lim*60000:1e12;}G.status='countdown';G.startAt=now()+CFG.countdownMs;
@@ -809,7 +903,7 @@ const Host={tm:null,n:0,
         for(const m of[300,60,30])if(rem<=m*1000&&rem>0&&m*1000<G.d.dur*.9&&!G.d.tw[m]){G.d.tw[m]=1;H.say('all',(m>=60?(m/60)+' minute'+(m>60?'s':''):m+' seconds')+' remaining.',{pri:2});}}
       if(G.status==='ended'){clearInterval(this.tm);}
       this.n++;if((G.status==='running'&&G.d&&(G.d.cur==='police'||G.d.cur==='tornado'))||this.n%2===0)this.push();}catch(e){console.error(e);}},250);},
-  back(){clearInterval(this.tm);Bots.clear();G.status='lobby';G.arena=null;G.pl={};G.d={};G.result=null;Arena.id=null;Sim.stop();this.push();},
+  back(){clearInterval(this.tm);Bots.clear();G.merge=null;Virt.on=false;Virt.set({th:0,tx:0,ty:0});Graph.allJunc=null;G.status='lobby';G.arena=null;G.pl={};G.d={};G.result=null;Arena.id=null;Sim.stop();this.push();},
   act(m){const p=P.get(m.id),M=MODES[G.mode];if(p&&M.act&&G.status==='running')M.act(p,m.act);}};
 const Act={do(a){const p=P.get(me.id);
   if(!Sim.on&&!Voice.cmd&&clsOf(me.bike)!=='foot'&&p&&p.spd>CFG.parkedKmh){UI.toast('Parked only. Say "'+a+'" instead.',2500);return;}
@@ -848,8 +942,8 @@ function fire(p){const g=G.pl[p.id],t=now();if(!g||g.alive===false||g.down>t)ret
   if(W.burst){for(let i=0;i<W.burst.n;i++)bursts.push({id:p.id,wk:g.weapon,at:t+i*W.burst.every});}else volley(p,g.weapon,aimOf(p));
   if(g.weapon==='railgun'){g.exposeUntil=t+8000;H.say('all','Railgun discharge detected. '+p.name+' exposed.',{pri:3,sfx:'boom'});}
   else g.flareUntil=t+span+3000;}
-function spawnCache(kind){const d=G.d,R=(G.mods.royale?d.zoneR:G.arena.r)*.9;
-  const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<R&&d.caches.every(k=>k.gone||hyp(k.x-n.x,k.y-n.y)>120)))[0];if(!c)return;
+function spawnCache(kind){const d=G.d,kk=Math.max(Math.min(...roster().map(reachOf)),.4),R=(G.mods.royale?d.zoneR:G.arena.r)*.9*kk;
+  const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<R&&d.caches.every(k=>k.gone||hyp(k.x-n.x,k.y-n.y)>120*kk)))[0];if(!c)return;
   d.caches.push({id:rid(),k:kind,w:kind==='weapon'?pick(['railgun','tommy','uzi','tommy','uzi']):null,x:c.x,y:c.y,st:c.adj[0]?c.adj[0].name:'',gone:false});}
 const TIME_DEFAULT={tron:0,outbreak:0,gridlock:15,vip:15,supply:10,border:15,ctf:15,king:15,catmouse:15,arena:15,disaster:0,mystery:0};   // minutes, 0 = no limit
 function timeLimitMin0(){const c=G.cfg.time;G.cfg.time='default';const v=timeLimitMin();G.cfg.time=c;return v;}
@@ -896,38 +990,46 @@ const DIS={
     hud(g,d){return g.out?'Caught. Spectating this round.':g.role==='murderer'?'Murderer: catch victims ('+d.r.kills+' of '+d.r.n+')':'Victim: stay alive. Survivors score for every victim caught ('+d.r.kills+' so far)';}},
 
   tornado:{name:'Tornado',len:100,w:1,
-    intro:'A fast, erratic tornado crosses the town. Nobody can outrun it, so read the warnings and get off its line.',
-    start(d){const rs=roster(),ss=rs.map(p=>PROFILE[clsOf(p.bike)].stealth),fast=Math.max(...ss)/40,slow=Math.min(...ss)/40;   // faster than the fastest rider, sized for the slowest
-      const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<G.arena.r*.9&&rs.every(q=>hyp(q.sx-n.x,q.sy-n.y)>250)))[0]||pick(Graph.junc);
-      d.r={x:c.x,y:c.y,rad:Math.round(clamp(130*slow,60,130)),hd:Math.random()*360,sp:12*fast,fast,next:0};H.say('all','Tornado touching down at '+c.label+'.',{pri:2});},
+    intro:'A tornado hunts the closest rider and sometimes switches to a random one. Its size is fixed; its speed depends on the classes playing. It turns slowly, so dodge it.',
+    start(d){const rs=roster(),fast=Math.max(...rs.map(p=>prof(p).stealth))/40;
+      const c=shuffle(Graph.junc.filter(n=>hyp(n.x,n.y)<G.arena.r*.9&&rs.every(q=>hyp(q.sx-n.x,q.sy-n.y)>Math.max(100,250*reachOf(q)))))[0]||pick(Graph.junc);
+      d.r={x:c.x,y:c.y,rad:130,hd:Math.random()*360,sp:10*fast,fast,next:0,tg:null,wob:0,nextW:0};H.say('all','Tornado touching down at '+c.label+'.',{pri:2});},
     tick(dt,t,d){const rs=live().filter(p=>!G.pl[p.id].out);if(!rs.length){d.done=true;return;}const T=d.r;
-      if(t>=T.next){T.next=t+5000+Math.random()*5000;                                            // fate: it picks a new heading every 5-10 s
-        if(Math.random()<.5){const v=pick(rs);T.hd=bearingXY(v.sx-T.x,v.sy-T.y);}else T.hd=Math.random()*360;
-        T.sp=(11+Math.random()*9)*T.fast;H.say('all','Tornado changing course. Now heading '+cardinal(T.hd)+'.',{pri:2});}
+      if(t>=T.next||!T.tg||!rs.some(p=>p.id===T.tg)){T.next=t+6000+Math.random()*5000;
+        const near=rs.reduce((b,p)=>hyp(p.sx-T.x,p.sy-T.y)<hyp(b.sx-T.x,b.sy-T.y)?p:b,rs[0]),tg=Math.random()<.6?near:pick(rs);   // fate: mostly the closest rider, sometimes a random one
+        if(tg.id!==T.tg){T.tg=tg.id;H.say(tg.id,'The tornado has locked onto you.',{pri:3,sfx:'alarm'});}
+        T.sp=(9+Math.random()*7)*T.fast;H.say('all','Tornado changing course.',{pri:2});}
+      if(t>=T.nextW){T.nextW=t+2000+Math.random()*2000;T.wob=(Math.random()*2-1)*35;}
+      const tg=P.get(T.tg),want=bearingXY(tg.sx-T.x,tg.sy-T.y)+T.wob,turn=30*dt;                                              // steers toward its target but cannot turn sharply
+      T.hd=(T.hd+clamp(angDiff(want,T.hd),-turn,turn)+360)%360;
       T.x+=Math.sin(T.hd*D2R)*T.sp*dt;T.y+=Math.cos(T.hd*D2R)*T.sp*dt;
-      const k=hyp(T.x,T.y);if(k>G.arena.r*.95){T.hd=bearingXY(-T.x,-T.y)+(Math.random()*40-20);T.x*=G.arena.r*.95/k;T.y*=G.arena.r*.95/k;}
+      const k=hyp(T.x,T.y);if(k>G.arena.r*.95){T.x*=G.arena.r*.95/k;T.y*=G.arena.r*.95/k;}
       const ux=Math.sin(T.hd*D2R),uy=Math.cos(T.hd*D2R);
       for(const p of rs){const rx=p.sx-T.x,ry=p.sy-T.y,q=hyp(rx,ry),inn=q<T.rad,along=rx*ux+ry*uy,perp=Math.abs(rx*uy-ry*ux);
         if(H.hold('tw'+p.id,inn,dt)>=3){out_(p,G.pl[p.id],t,d,'Swept away.');H.say('all',p.name+' was swept away.',{pri:2});continue;}
         if(inn){if(H.cool('ti'+p.id,4))H.say(p.id,'In the funnel. Get out now.',{pri:3,sfx:'alarm'});}
-        else if(along>0&&perp<T.rad+40&&along/T.sp<14){if(H.cool('tl'+p.id,6))H.say(p.id,'Tornado on your line in '+Math.max(1,Math.round(along/T.sp))+' seconds. Move off its path.',{pri:3,sfx:'alarm'});}   // the strategy part: step sideways
+        else if(along>0&&perp<T.rad+40&&along/T.sp<14){if(H.cool('tl'+p.id,6))H.say(p.id,'Tornado on your line in '+Math.max(1,Math.round(along/T.sp))+' seconds. Move off its path.',{pri:3,sfx:'alarm'});}
         else if(q<T.rad+300&&H.cool('tn'+p.id,12))H.say(p.id,'Tornado '+Math.round(q/10)*10+' metres at your '+clockDir(p,{sx:T.x,sy:T.y})+'.',{pri:2});}},
     score(p,g,d){return 100*clamp((g.out?g.surv:d.len)/d.len,0,1);},
-    hud(g){return g.out?'Swept away. Spectating this round.':'Nobody outruns it. Listen for "on your line" and get off its path.';}},
+    hud(g){return g.out?'Swept away. Spectating this round.':'It hunts the closest rider, sometimes a random one. Change direction, do not run in a line.';}},
 
-  meteor:{name:'Meteor Strike',len:110,w:1,intro:'Meteors land near where you are heading. Each one is announced 15 seconds ahead. Change your route and stay out of the blast.',
+  meteor:{name:'Meteor Strike',len:110,w:1,intro:'Meteors land near where you are heading, so standing still is dangerous. Each one is announced 15 seconds ahead and your blast zone is drawn on your map. Faster classes get a bigger circle.',
     start(d){d.r={strikes:[],next:0,at:[3,28,53,78]};},
     tick(dt,t,d){const e=(t-d.rStart)/1000,R=d.r;
       if(R.next<R.at.length&&e>=R.at[R.next]){R.next++;const v=pick(live());
-        if(v){const sp=(v.spd||0)/3.6,mv=sp>.6?sp*15:0,h=(v.hdg||0)*D2R;let x=v.sx+Math.sin(h)*mv+(Math.random()*2-1)*30,y=v.sy+Math.cos(h)*mv+(Math.random()*2-1)*30;
+        if(v){const sp=(v.spd||0)/3.6,mv=sp>.6?sp*15:0,h=(v.hdg||0)*D2R,jit=30*Math.max(reachOf(v),.4);
+          let x=v.sx+Math.sin(h)*mv+(Math.random()*2-1)*jit,y=v.sy+Math.cos(h)*mv+(Math.random()*2-1)*jit;
           const k=hyp(x,y);if(k>G.arena.r*.95){x*=G.arena.r*.95/k;y*=G.arena.r*.95/k;}
-          const n=Graph.nearJunction(x,y,300);R.strikes.push({x,y,rad:100,hitAt:t+15000,done:false});
-          H.say('all','Meteor inbound. Impact in 15 seconds near '+(n?n.label:'the grid')+'. Blast radius 100 metres.',{pri:3,sfx:'alarm'});}}
-      for(const m of R.strikes)if(!m.done&&t>=m.hitAt){m.done=true;Sfx.boom();
-        for(const p of live())if(hyp(p.sx-m.x,p.sy-m.y)<m.rad){G.pl[p.id].hits=(G.pl[p.id].hits||0)+1;H.say(p.id,'Direct hit.',{pri:3,sfx:'boom'});}}
+          const n=Graph.nearJunction(x,y,300);R.strikes.push({id:rid(),x,y,hitAt:t+15000,done:false});
+          H.say('all','Meteor inbound. Impact in 15 seconds near '+(n?n.label:'the grid')+'. Your blast zone is on your map.',{pri:3,sfx:'alarm'});}}
+      for(const m of R.strikes){const left=m.hitAt-t;
+        for(const p of live()){const dd=hyp(p.sx-m.x,p.sy-m.y),rad=prof(p).meteorR;
+          if(!m.done&&left>0&&dd<rad&&H.cool('mi'+p.id+m.id,6))H.say(p.id,'Inside the blast zone. '+Math.max(1,Math.ceil(left/1000))+' seconds. Get out.',{pri:3});
+          if(!m.done&&t>=m.hitAt&&dd<rad){G.pl[p.id].hits=(G.pl[p.id].hits||0)+1;H.say(p.id,'Direct hit.',{pri:3,sfx:'boom'});}}
+        if(!m.done&&t>=m.hitAt){m.done=true;Sfx.boom();}}
       R.strikes=R.strikes.filter(m=>t<m.hitAt+3000);},
     score(p,g){return 100-35*(g.hits||0);},
-    hud(g){return 'Hits taken: '+(g.hits||0)+'. Strikes land near where you are heading, so change it up.';}},
+    hud(g){return 'Hits taken: '+(g.hits||0)+'. Blast radius for you: '+prof(me).meteorR+' m. Keep moving.';}},
 
   quake:{name:'Earthquake',len:100,w:1,
     intro:'Ride to earn points. When a quake is called, slow below 5 kilometres per hour within 12 seconds and hold still. Move during a quake and you are out for the round.',
@@ -945,9 +1047,9 @@ const DIS={
       const st=q?(q.st===1?'SLOW below 5 km/h within '+Math.max(0,Math.ceil(q.warn+q.win-e))+' s':'HOLD STILL for '+Math.max(0,Math.ceil(q.warn+q.win+q.hold-e))+' s'):'Quake can strike any moment. Keep riding.';
       return'Ride time '+Math.round(g.ride||0)+' s. '+st;}},
 
-  flood:{name:'Flood',len:100,w:1.25,intro:'Floodwater is rising. Reach high ground. There is one spot fewer than there are riders, and one rider per spot.',
-    start(d){const rs=roster(),k=clamp(rs.length-1,1,6),spots=[];
-      for(let i=0;i<k;i++){const a=pick(rs),c=shuffle(Graph.junc.filter(n=>{const dd=hyp(n.x-a.sx,n.y-a.sy);return dd>150&&dd<600&&hyp(n.x,n.y)<G.arena.r*.95&&spots.every(q=>hyp(q.x-n.x,q.y-n.y)>120);}))[0]||pick(Graph.junc);spots.push({x:c.x,y:c.y,label:c.label,by:null});}
+  flood:{name:'Flood',len:100,w:1.25,intro:'Floodwater is rising. Reach high ground. There is one spot fewer than there are riders, and one rider per spot. Spots are placed closer to slower riders.',
+    start(d){const rs=roster(),k=clamp(rs.length-1,1,6),spots=[],order=rs.slice().sort((a,b)=>reachOf(a)-reachOf(b));   // slowest riders get a spot near them first
+      for(let i=0;i<k;i++){const a=order[i%order.length],c=spotNear(a,150,600,spots,120)||nearestJ(a);spots.push({x:c.x,y:c.y,label:c.label,by:null});}
       d.r={spots};
       for(const p of rs){const n=spots.reduce((b,q)=>!b||hyp(p.sx-q.x,p.sy-q.y)<hyp(p.sx-b.x,p.sy-b.y)?q:b,null);
         H.say(p.id,'Nearest high ground: '+n.label+', '+Math.round(hyp(p.sx-n.x,p.sy-n.y)/10)*10+' metres at your '+clockDir(p,{sx:n.x,sy:n.y})+'.',{pri:2});}},
@@ -962,8 +1064,7 @@ const DIS={
   police:{name:'Police Raid',len:100,w:1.25,
     intro:'Police units are hunting every rider. They are slower than you but they work together to cut off your exits. Survivors score for every rider caught.',
     start(d){const rs=roster().filter(p=>G.pl[p.id]),k=clamp(rs.length+3,4,10);cops=[];dmc=new Map();
-      const spots=[];for(let tr=0;tr<600&&spots.length<k;tr++){const a=pick(rs),n=pick(Graph.junc),dd=hyp(n.x-a.sx,n.y-a.sy);   // start 200-450 m from a rider so the raid bites inside one round
-        if(dd<200||dd>450||hyp(n.x,n.y)>G.arena.r*.95||rs.some(q=>hyp(q.sx-n.x,q.sy-n.y)<200)||spots.some(q=>hyp(q.x-n.x,q.y-n.y)<120))continue;spots.push(n);}
+      const spots=[],order=shuffle(rs);for(let tr=0;tr<600&&spots.length<k;tr++){const a=order[tr%order.length],u=spotNear(a,200,450,spots,120,v=>rs.every(q=>hyp(q.sx-v.x,q.sy-v.y)>Math.max(80,200*reachOf(q))));if(u)spots.push(u);}   // start close enough to bite inside one round, scaled by class
       while(spots.length<k)spots.push(pick(Graph.junc));
       for(const n of spots)cops.push({x:n.x,y:n.y,from:n.id,to:Graph.edgesFor(n,false)[0].to,s:0,ap:false,free:false,v:8,role:'chase',tg:null,td:0,dm:null,gx:n.x,gy:n.y,wasFree:false});
       d.r={cops:[],caught:0,n:rs.length,rp:0};
@@ -1195,7 +1296,8 @@ vip:{name:'VIP Escort',min:3,
 
 supply:{name:'Supply Run',min:2,
   blurb:'Five crates are hidden on the grid. Whoever carries one flashes on every map. Get within '+PROX.steal+' m of a carrier to steal half their crates.',
-  setup(){const cs=[];for(const n of shuffle(Graph.junc)){if(hyp(n.x,n.y)>G.arena.r*.85)continue;if(cs.every(c=>hyp(c.x-n.x,c.y-n.y)>250))cs.push({id:n.id,x:n.x,y:n.y,by:null});if(cs.length>=5)break;}
+  setup(){const cs=[],k=Math.max(Math.min(...roster().map(reachOf)),.4),R=G.arena.r*.85*k,gap=Math.max(80,250*k);   // tighter spread when slower classes are playing
+    for(const n of shuffle(Graph.junc)){if(hyp(n.x,n.y)>R)continue;if(cs.every(c=>hyp(c.x-n.x,c.y-n.y)>gap))cs.push({id:n.id,x:n.x,y:n.y,by:null});if(cs.length>=5)break;}
     while(cs.length<5){const n=pick(Graph.junc);cs.push({id:n.id,x:n.x,y:n.y,by:null});}
     roster().forEach(p=>G.pl[p.id]={alive:true,crates:0});G.d={crates:cs,dur:600000,major:null};H.say('all','Five supply crates are live. Ride through a crate zone to claim it.',{pri:2});},
   tick(dt){const t=now(),d=G.d,rs=live();
@@ -1314,8 +1416,8 @@ arena:{name:'Firefight',min:2,teams:true,
     for(const p of rs){const g=G.pl[p.id];if(g.alive===false||g.down>t)continue;
       for(const c of d.caches){if(c.gone)continue;const dd=hyp(p.sx-c.x,p.sy-c.y),k=p.id+c.id;
         if(c.k==='health'){if(dd<45&&H.cool('hc'+k,30))H.say(p.id,'Medical asset detected nearby within 45 metres. Pull over to consume.',{pri:2});}
-        else{const near=dd<500;if(near&&!nearMap.get(k))H.say(p.id,'Weapon cache scan positive. '+WEAPONS[c.w].name+' signatures detected about '+Math.round(dd/50)*50+' metres at your '+clockDir(p,{sx:c.x,sy:c.y})+(c.st&&c.st!=='unnamed road'?' near '+c.st:'')+'.',{pri:2,sfx:'ping'});
-          if(near!==!!nearMap.get(k)&&(near||dd>600))nearMap.set(k,near);}
+        else{const aR=500*Math.max(reachOf(p),.4),near=dd<aR;if(near&&!nearMap.get(k))H.say(p.id,'Weapon cache scan positive. '+WEAPONS[c.w].name+' signatures detected about '+Math.round(dd/50)*50+' metres at your '+clockDir(p,{sx:c.x,sy:c.y})+(c.st&&c.st!=='unnamed road'?' near '+c.st:'')+'.',{pri:2,sfx:'ping'});
+          if(near!==!!nearMap.get(k)&&(near||dd>aR*1.2))nearMap.set(k,near);}
         if(H.hold('pk'+k,dd<15&&(p.spd||0)<=1.5,dt)>=3){c.gone=true;H.clearHolds('pk'+k);
           if(c.k==='weapon'){g.weapon=c.w;g.readyAt=0;g.cycled=true;H.say(p.id,WEAPONS[c.w].name+' systems integrated. Previous firearm dismantled and replaced.',{pri:3,sfx:'ping'});}
           else{g.hp=Math.min(100,g.hp+50);H.say(p.id,'Medical cache depleted. Grid resource removed.',{pri:2,sfx:'ping'});
@@ -1368,11 +1470,17 @@ function baseLayer(){const k=cartoKey();                              // CARTO d
   if(k)return L.tileLayer('https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key='+encodeURIComponent(k),{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO | road data: OpenFreeMap / Overpass'});
   return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'osm-dark',attribution:'&copy; OpenStreetMap contributors | road data: OpenFreeMap / Overpass'});}
 function workerBase(){return CFG.overpassUrl?CFG.overpassUrl.replace(/\/overpass\/?$/,''):(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,''):'');}
-async function loadCartoKey(){const b=workerBase(),lab=$('#inCarto').closest('label');                  // the key lives in the Worker as a secret
-  if(!b||cartoKey()){if(lab)lab.hidden=!!b&&!!cartoKey();return;}
+async function loadCartoKey(){const b=workerBase(),lab=$('#inCarto').closest('label'),note=$('#cartoNote');                 // the key lives in the Worker as a secret
+  const show=msg=>{if(lab)lab.hidden=false;if(note)note.textContent=msg;};
+  if(cartoKey()){if(lab)lab.hidden=!!b;return;}
+  if(!b){show('No relay set, so the game cannot ask your Worker for the key. Set the relay (above) or paste a key here.');return;}
   if(lab)lab.hidden=true;
-  try{const j=await(await fetch(b+'/carto-key',{cache:'no-store'})).json();if(j.key){CFG.cartoKey=j.key;View.refreshBase();return;}}catch(e){}
-  if(lab)lab.hidden=false;}                                                                    // no key from the Worker: show the manual box again
+  try{const res=await fetch(b+'/carto-key',{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status+(res.status===403?' (ALLOWED_ORIGIN does not match this page)':''));
+    const j=await res.json().catch(()=>{throw new Error('the Worker has no /carto-key route yet: redeploy worker.js');});
+    if(j.key){CFG.cartoKey=j.key;View.refreshBase();return;}
+    show('Your Worker answered but CARTO_KEY is empty: run  npx wrangler secret put CARTO_KEY  then redeploy.');}
+  catch(e){show('Could not get the key from your Worker: '+e.message);}}
 const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
   init(){if(this.map)return;
     this.map=L.map('map',{zoomControl:false,attributionControl:true}).setView([DEMO.lat,DEMO.lon],16);
@@ -1381,7 +1489,7 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     this.canvas=L.canvas({padding:.5});this.graphL=L.layerGroup().addTo(this.map);this.hintL=L.layerGroup().addTo(this.map);
     this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
     setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();},500);},
-  ll(x,y){return Geo.ll(x,y);},
+  ll(x,y){const q=Virt.on?Virt.toLocal([x,y]):[x,y];return Geo.ll(q[0],q[1]);},
   icon(p,cls){return L.divIcon({className:'',iconSize:[0,0],html:'<div class="rider '+cls+'" style="--c:'+col(p)+'"><i></i><b>'+esc(p.name)+'</b></div>'});},
   frame(){const m=P.get(me.id);if(!m||m.sx==null||G.status==='lobby'||!this.map)return;
     const blind=isBlind();$('#map').classList.toggle('blind',blind);
@@ -1419,7 +1527,7 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     for(const pg of d.pings||[])if(pg.until>now()&&addressed(pg.aud))ring(pg.x,pg.y,pg.r,{color:'#f48fb1',weight:4,dashArray:'10 8',fillColor:'#f48fb1',fillOpacity:.15});
     if((G.mode==='disaster'||G.mode==='mystery')&&d.cur){const r=d.r||{};
       if(d.cur==='tornado'&&r.rad){ring(r.x,r.y,r.rad,{color:'#ff6b5a',weight:4,fillColor:'#ff6b5a',fillOpacity:.25});pin(r.x,r.y,'r','TORNADO');}
-      if(d.cur==='meteor')for(const m of r.strikes||[])if(m.hitAt>now()-3000){ring(m.x,m.y,m.rad,{color:'#ff9f43',weight:4,dashArray:'6 6',fillColor:'#ff6b5a',fillOpacity:.22});pin(m.x,m.y,'r',String(Math.max(0,Math.ceil((m.hitAt-now())/1000))));}
+      if(d.cur==='meteor')for(const m of r.strikes||[])if(m.hitAt>now()-3000){ring(m.x,m.y,PROFILE[clsOf(me.bike)].meteorR,{color:'#ff9f43',weight:4,dashArray:'6 6',fillColor:'#ff6b5a',fillOpacity:.22});pin(m.x,m.y,'r',String(Math.max(0,Math.ceil((m.hitAt-now())/1000))));}
       if(d.cur==='flood')for(const q of r.spots||[]){ring(q.x,q.y,40,{color:q.by?'#f3efe4':'#7cc4f5',weight:3,fillOpacity:.2});pin(q.x,q.y,q.by?'w':'b',q.by?'TAKEN':'HIGH GROUND');}
       if(d.cur==='police')for(const c of r.cops||[]){ring(c.x,c.y,PROX.vip,{color:'#7cc4f5',weight:2,dashArray:'3 5',fillColor:'#ff6b5a',fillOpacity:.25});pin(c.x,c.y,'b','POLICE');}
       if(d.cur==='mystery')for(const z of r.zones||[])if(z.until>now()){ring(z.x,z.y,z.r,{color:'#f48fb1',weight:3,dashArray:'8 8',fillColor:'#f48fb1',fillOpacity:.15});pin(z.x,z.y,'r','?');}}
@@ -1444,12 +1552,12 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     for(const n of Graph.junc.slice(0,1200))L.circleMarker(Geo.ll(n.x,n.y),{renderer:this.canvas,radius:3,color:'#f5c842',weight:1,fillOpacity:.85,interactive:false}).addTo(this.graphL);},
   simHint(){if(!this.hintL)return;this.hintL.clearLayers();if(!Sim.on||!Sim.w||!Graph.ready||G.status==='lobby')return;
     const lk=Sim.w.look();if(lk.exits.length<2)return;const C={L:'#f48fb1',S:'#f5c842',R:'#7cc4f5'},J=lk.node;
-    L.circleMarker(this.ll(J.x,J.y),{radius:10,color:'#fff',weight:3,fillOpacity:0,interactive:false}).addTo(this.hintL);
+    L.circleMarker(Geo.ll(J.x,J.y),{radius:10,color:'#fff',weight:3,fillOpacity:0,interactive:false}).addTo(this.hintL);
     for(const x of lk.exits){const d=hyp(x.N.x-J.x,x.N.y-J.y)||1,f=Math.min(1,45/d),px=J.x+(x.N.x-J.x)*f,py=J.y+(x.N.y-J.y)*f;
-      L.polyline([this.ll(J.x,J.y),this.ll(px,py)],{color:C[x.k],weight:7,opacity:.9,interactive:false}).addTo(this.hintL);
-      L.marker(this.ll(px,py),{icon:L.divIcon({className:'',html:'<div class="pin" style="color:'+C[x.k]+'">'+x.k+'</div>',iconSize:[0,0]}),interactive:false}).addTo(this.hintL);}},
+      L.polyline([Geo.ll(J.x,J.y),Geo.ll(px,py)],{color:C[x.k],weight:7,opacity:.9,interactive:false}).addTo(this.hintL);
+      L.marker(Geo.ll(px,py),{icon:L.divIcon({className:'',html:'<div class="pin" style="color:'+C[x.k]+'">'+x.k+'</div>',iconSize:[0,0]}),interactive:false}).addTo(this.hintL);}},
   refreshBase(){if(!this.map||!this.tiles)return;this.map.removeLayer(this.tiles);this.tiles=baseLayer().addTo(this.map);this.tiles.bringToBack();},
-  fit(){if(this.map){this.map.setView(this.ll(0,0),16);this.map.invalidateSize();this.drawGraph();}}};
+  fit(){if(this.map){this.map.setView(Geo.ll(0,0),16);this.map.invalidateSize();this.drawGraph();}}};
 
 /* ================= UI ================= */
 const UI={cur:'scrLobby',toastT:null,
@@ -1467,13 +1575,14 @@ const UI={cur:'scrLobby',toastT:null,
     $('#mods').innerHTML=(M.mods||[]).map(m=>'<label class="chk"><input type="checkbox" data-mod="'+m.k+'" '+(G.mods[m.k]?'checked':'')+(host?'':' disabled')+'><span><b>Modifier: '+m.label+'.</b> '+m.info+'</span></label>').join('');
     $('#selR').value=G.cfg.r;$('#selBots').value=G.cfg.bots;$('#selCenter').value=G.cfg.center;
     for(const s of['#selR','#selBots','#selCenter'])$(s).disabled=!host;
-    $('#selChat').value=G.cfg.chat;$('#selChatR').value=G.cfg.chatR;$('#chatRWrap').hidden=G.cfg.chat!=='prox';$('#selPoi').value=G.cfg.poi;
+    $('#selChat').value=G.cfg.chat==='off'?'off':'on';$('#selChatR').value=G.cfg.chatR;$('#rngFloor').value=G.cfg.chatFloor;$('#floorVal').textContent=G.cfg.chatFloor;$('#floorWrap').hidden=G.cfg.chat==='off';$('#chatRWrap').hidden=G.cfg.chat==='off'||G.cfg.chatFloor>=100;$('#selPoi').value=G.cfg.poi;
     const dm=['gridlock','vip','catmouse'].includes(G.mode);$('#destBox').hidden=!dm;$('#fixedDest').hidden=!(G.mode==='gridlock'&&!G.mods.duel);
     $('#destLbl').textContent=G.cfg.dest?G.cfg.dest.label:'Random';$('#btnClrDest').hidden=!G.cfg.dest||!host;$('#btnDest').disabled=!host;
+    $('#chkMerge').checked=!!G.cfg.merge;$('#chkMerge').disabled=!host;
     $('#roundsWrap').hidden=!['disaster','mystery'].includes(G.mode);$('#selRounds').value=G.cfg.rounds;
-    for(const s of['#selChat','#selChatR','#selPoi','#selTime','#selRounds'])$(s).disabled=!host;
+    for(const s of['#selChat','#selChatR','#rngFloor','#selPoi','#selTime','#selRounds'])$(s).disabled=!host;
     {const dm_=timeLimitMin0();$('#selTime').options[0].textContent='Mode default ('+(dm_?dm_+' min':'no limit')+')';$('#selTime').value=G.cfg.time;}
-    $('#btnStart').hidden=!host;$('#waitMsg').hidden=host;},
+    $('#btnStart').hidden=!host;$('#waitMsg').hidden=host;$('#waitMsg').textContent=G.hostId?'Waiting for the host to start.':'Looking for the host… make sure you both opened the game with the same relay.';},
   tick(){const m=P.get(me.id);if(G.status==='lobby'||!m)return;
     const spd=m.spd||0,i=visInfo(m,m),rad=i?i.radius:0;
     $('#mSpd').textContent=Math.round(spd);$('#mRad').textContent=rad;$('#needle').style.left=clamp(spd/prof(m).max,0,1)*100+'%';
@@ -1481,7 +1590,7 @@ const UI={cur:'scrLobby',toastT:null,
     if(this.mk!==ck){this.mk=ck;const z=document.querySelectorAll('.zones i');[pr.stealth,pr.flare-pr.stealth,pr.blind-pr.flare,pr.max-pr.blind].forEach((v,i)=>{if(z[i])z[i].style.flex=v;});
       const pc=v=>(v/pr.max*100)+'%';$('#tk0').style.left=pc(pr.stealth);$('#tk1').style.left=pc(pr.flare);$('#tk2').style.left=pc(pr.blind);
       $('#tk0').textContent=pr.stealth+' hidden';$('#tk1').textContent=pr.flare+' flare';$('#tk2').textContent=pr.blind+' blind';}
-    $('#btnMic').hidden=!Chat.on;
+    $('#btnMic').hidden=!Chat.on;$('#floorDock').hidden=!Chat.on;if(Chat.on&&Chat.floorLocal==null)$('#rngFloorMine').value=G.cfg.chatFloor;
     if(Sim.on&&Sim.w){const lk=Sim.w.look(),have={},jn=lk.exits.length>1;lk.exits.forEach(x=>{have[x.k]=1;});
       for(const[k,id]of[['L','#simL'],['S','#simS'],['R','#simR']]){const el=$(id);el.disabled=jn&&!have[k];el.setAttribute('aria-pressed',Sim.w.intent===k);}
       $('#simInfo').textContent=(jn?'Junction in '+Math.round(lk.dist)+' m':'No junction ahead')+(Sim.w.intent?'. Queued: '+({L:'left',S:'straight',R:'right'})[Sim.w.intent]:'');}
@@ -1491,6 +1600,7 @@ const UI={cur:'scrLobby',toastT:null,
     else if(G.status==='running'&&M.hud)try{h=M.hud(g);}catch(e){h=[M.name,''];}
     else h=[M.name,''];
     if(G.status==='running'&&G.d&&G.d.dur<1e11)h=[h[0],(h[1]?h[1]+' | ':'')+mmss(G.d.dur-(now()-G.t0))+' left'];
+    h=[tok(h[0]),tok(h[1])];
     $('#hudHead').textContent=h[0];$('#hudSub').textContent=h[1];
     const acts=G.status==='running'&&M.acts?M.acts():[];
     const ah=acts.map(a=>'<button class="btn pink" data-act="'+a+'">'+cap(a)+'</button>').join('');
@@ -1501,7 +1611,7 @@ const UI={cur:'scrLobby',toastT:null,
       ov.dataset.k='';ov.innerHTML='<div class="big disp">'+s+'</div><h2 class="disp">'+M.name+'</h2><p>Loading streets and roles. Stay legal and ride smart.</p>';
       if([10,5,3,2,1].includes(s))Say.say(String(s),{key:'cd'+s,cd:4000});}
     else if(G.status==='ended'&&G.result){ov.hidden=false;const rk=G.result.title+G.result.lines.join('|');if(ov.dataset.k!==rk){ov.dataset.k=rk;
-      ov.innerHTML='<h2 class="disp">'+esc(G.result.title)+'</h2>'+(G.result.lines.length?'<ol>'+G.result.lines.map(l=>'<li>'+esc(l.replace(/^\d+\.\s*/,''))+'</li>').join('')+'</ol>':'')+(isHost()?'<button class="btn" id="btnBack">Back to lobby</button>':'<p>Waiting for the host.</p>');}}
+      ov.innerHTML='<h2 class="disp">'+esc(tok(G.result.title))+'</h2>'+(G.result.lines.length?'<ol>'+G.result.lines.map(l=>'<li>'+esc(tok(l).replace(/^\d+\.\s*/,''))+'</li>').join('')+'</ol>':'')+(isHost()?'<button class="btn" id="btnBack">Back to lobby</button>':'<p>Waiting for the host.</p>');}}
     else ov.hidden=true;}};
 
 const Picker={map:null,mk:null,sel:null,_r:[],
@@ -1518,23 +1628,30 @@ const Picker={map:null,mk:null,sel:null,_r:[],
     catch(e){UI.toast('Search failed.');}}};
 
 /* ================= network handler ================= */
+function verCheck(m){if((m.type==='hello'||m.type==='game')&&m.ver!==VER&&!verCheck.seen){verCheck.seen=1;UI.toast('Version mismatch: you run '+VER+', the other phone runs '+(m.ver||'an older build')+'. Hard-refresh both phones.',10000);}}
 function onNet(m){
-  if(!m||m.from===me.id)return;
+  if(!m||m.from===me.id)return;verCheck(m);
   switch(m.type){
     case 'hello':{if(!P.has(m.p.id))P.set(m.p.id,{id:m.p.id,name:m.p.name,bike:m.p.bike,t:now()});else Object.assign(P.get(m.p.id),{name:m.p.name,bike:m.p.bike});
-      if(!m.reply)Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike},reply:true});
+      if(!m.reply)Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike},reply:true,ver:VER});
       if(isHost())Host.push();else UI.sync();break;}
     case 'pos':applyPos(m,null);break;
     case 'game':{if(m.g.hostId!==m.from)break;G=m.g;if(G.arena)Arena.ensure();else Arena.id=null;if(G.status==='lobby')Sim.stop();UI.sync();break;}
     case 'say':if(addressed(m.to))playSay(m);break;
     case 'boom':onBoom(m);break;
     case 'rtc':Chat.onRtc(m);break;
+    case 'mergeReq':if(!isHost())Merge.onReq(m);break;
+    case 'mergeData':if(isHost())Merge.onData(m);break;
     case 'act':if(isHost())Host.act(m);break;
     case 'bye':P.delete(m.id);if(isHost())Host.push();break;}}
 
 const Arena={id:null,
   async ensure(){const a=G.arena;if(!a||this.id===a.id)return;this.id=a.id;
-    await Graph.load(a.lat,a.lon,a.r,a.net,G.cfg.center==='demo'||Sim.on);rebase();View.fit();Sim.begin();startInputs();
+    const mg=G.merge&&G.merge.tf&&G.merge.tf[me.id],allow=G.cfg.center==='demo'||Sim.on;
+    if(mg){const an=G.merge.an[me.id];Virt.set(mg);Virt.on=true;                                       // merged match: I play in my own town
+      if(Graph.ready&&!Graph.failed&&Graph.key===Graph.keyFor(an.lat,an.lon,a.r))Geo.set(an.lat,an.lon);else await Graph.load(an.lat,an.lon,a.r,a.net,allow);}
+    else{Virt.on=false;Virt.set({th:0,tx:0,ty:0});await Graph.load(a.lat,a.lon,a.r,a.net,allow);}
+    rebase();View.fit();Sim.begin();startInputs();
     if(Graph.failed)UI.toast('Roads did not load on this phone ('+Graph.failed+'). Positions still work; street names and flares are limited.',6000);}};
 function startInputs(){if($('#chkVoice').checked||$('#chkShout').checked)Voice.start();if($('#chkShout').checked)Mic.startShout();if($('#chkChat').checked&&G.cfg.chat!=='off')Chat.start();}
 
@@ -1542,6 +1659,11 @@ function startInputs(){if($('#chkVoice').checked||$('#chkShout').checked)Voice.s
 $('#inCarto').value=cartoKey();
 $('#inCarto').onchange=e=>{const v=e.target.value.trim();try{if(v)localStorage.setItem('tarmac.carto',v);else localStorage.removeItem('tarmac.carto');}catch(err){}CFG.cartoKey=v;UI.toast(v?'Key saved. Reload the page to use it on the map.':'Key cleared.',3000);};
 const BIKES=['low','high','foot','open'],BID={low:'#bikeLow',high:'#bikeHigh',foot:'#bikeFoot',open:'#bikeOpen'};
+function showConn(){const el=$('#connNote'),rw=$('#relayWrap');if(!el)return;
+  if(CFG.transport==='websocket'){let h=CFG.wsUrl;try{h=new URL(CFG.wsUrl.replace(/^ws/,'http')).host;}catch(e){}el.textContent='Relay: '+h+'  |  build '+VER;el.style.color='var(--grass)';rw.hidden=true;}
+  else{el.textContent='No relay set: only tabs on this device can see each other. Paste your relay address below, open your link with ?relay=wss://..., or add a config.js. Build '+VER;el.style.color='var(--orange)';rw.hidden=false;}}
+$('#inRelay').onchange=e=>{const v=e.target.value.trim();try{if(v)localStorage.setItem('tarmac.relay',v.replace(/^http/,'ws'));}catch(err){}location.reload();};
+showConn();
 function setBike(b){me.bike=b;for(const k of BIKES)$(BID[k]).setAttribute('aria-pressed',k===b);}
 for(const k of BIKES)$(BID[k]).onclick=()=>setBike(k);
 async function enter(room,host){
@@ -1552,9 +1674,9 @@ async function enter(room,host){
   try{await Net.join(room);}catch(e){UI.toast('Could not connect: '+e.message,4000);return;}
   if(host)G.hostId=me.id;
   if(Sim.on)Sim.startLobby();else Me.startGPS();
-  Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike}});
+  Net.send({type:'hello',p:{id:me.id,name:me.name,bike:me.bike},ver:VER});
   UI.show('scrRoom');UI.room();
-  if(!host)setTimeout(()=>{if(!G.hostId)UI.toast('No host found for room '+room+'. Check the code.',4000);},3500);}
+  if(!host){UI.toast('Joining room '+room+'…',3000);setTimeout(()=>{if(!G.hostId)UI.toast('No host found for room '+room+'. Check the code, and that you both opened the game with the same relay.'+(CFG.transport!=='websocket'?' This phone has no relay set, so it can only see tabs on this device.':''),8000);},3500);}}
 $('#btnCreate').onclick=()=>enter(String(1000+Math.floor(Math.random()*9000)),true);
 $('#btnJoin').onclick=()=>{const c=$('#inCode').value.trim();if(!/^\d{4}$/.test(c)){UI.toast('Enter the 4-digit room code.');return;}enter(c,false);};
 function cfgChanged(){if(isHost())Host.push();}
@@ -1563,10 +1685,14 @@ $('#mods').onchange=e=>{const k=e.target.dataset.mod;if(k&&isHost()){G.mods[k]=e
 $('#selR').onchange=e=>{G.cfg.r=+e.target.value;cfgChanged();};
 $('#selBots').onchange=e=>{G.cfg.bots=+e.target.value;cfgChanged();};
 $('#selCenter').onchange=e=>{G.cfg.center=e.target.value;cfgChanged();};
+$('#chkMerge').onchange=e=>{G.cfg.merge=e.target.checked;cfgChanged();};
 $('#selRounds').onchange=e=>{G.cfg.rounds=+e.target.value;cfgChanged();};
 $('#selTime').onchange=e=>{G.cfg.time=e.target.value;cfgChanged();};
 $('#selPoi').onchange=e=>{G.cfg.poi=e.target.value;cfgChanged();};
 $('#selChat').onchange=e=>{G.cfg.chat=e.target.value;cfgChanged();};
+$('#rngFloor').oninput=e=>{$('#floorVal').textContent=e.target.value;};
+$('#rngFloor').onchange=e=>{G.cfg.chatFloor=+e.target.value;cfgChanged();};
+$('#rngFloorMine').oninput=e=>{Chat.floorLocal=+e.target.value;};
 $('#selChatR').onchange=e=>{G.cfg.chatR=+e.target.value;cfgChanged();};
 $('#btnDest').onclick=()=>{if(isHost())Picker.open();};
 $('#btnClrDest').onclick=()=>{G.cfg.dest=null;cfgChanged();};
