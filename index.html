@@ -231,8 +231,8 @@ const CFG={
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
   cartoKey:'',           // free CARTO basemap key (https://carto.com/basemaps/apikey/). Also accepted as ?carto=KEY, and remembered on that phone.
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
-  overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
-  turnUrl:'',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
+  overpassUrl:'https://whasking.hamburgeer-com.workers.dev/overpass',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
+  turnUrl:'https://whasking.hamburgeer-com.workers.dev/turn',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
   boomAccel:3.5,boomMs:7000,
   trailMs:120000,trailGraceMs:3000,
   countdownMs:15000,parkedKmh:8
