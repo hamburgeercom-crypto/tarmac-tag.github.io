@@ -120,6 +120,7 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 .pin{transform:translate(-50%,-50%);font:400 24px 'Bagel Fat One';text-shadow:0 0 6px #000,0 0 3px #000;white-space:nowrap}
 .pin.r{color:var(--red)}.pin.b{color:var(--sky)}.pin.y{color:var(--yellow)}.pin.g{color:var(--grass)}.pin.w{color:#fff}
 .arrow{transform-origin:center;font-size:20px;color:var(--orange);text-shadow:0 0 6px #000;line-height:20px;text-align:center;width:20px;height:20px;margin:-10px 0 0 -10px}
+img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.45)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -142,6 +143,7 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
     <h2 class="disp">Room</h2>
     <button id="btnCreate" class="btn" style="width:100%;margin-bottom:12px">Create a room</button>
     <div class="row"><input id="inCode" type="number" inputmode="numeric" placeholder="4-digit code" aria-label="Room code"><button id="btnJoin" class="btn alt">Join</button></div>
+    <label class="f">CARTO map key (optional, for the dark map)<input id="inCarto" type="text" autocomplete="off" placeholder="paste your free key"></label>
     <label class="chk"><input id="chkSim" type="checkbox"> Simulate my rider (no GPS, for testing)</label>
     <label class="chk"><input id="chkVoice" type="checkbox"> Voice commands like "challenge", "accept", "snare" (asks for the microphone)</label>
     <label class="chk"><input id="chkShout" type="checkbox"> Shout to fire in Firefight (uses the helmet mic)</label>
@@ -227,6 +229,7 @@ const CFG={
   wsUrl:'wss://your-relay.example.com',  // relay-server.js
   supabaseUrl:'',supabaseKey:'',
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
+  cartoKey:'',           // free CARTO basemap key (https://carto.com/basemaps/apikey/). Also accepted as ?carto=KEY, and remembered on that phone.
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
   overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
   turnUrl:'',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
@@ -236,7 +239,8 @@ const CFG={
 };
 CFG.maxRadius=Math.ceil((CFG.maxKmh-CFG.stealthKmh)/CFG.stepKmh)*CFG.stepMeters;
 if(typeof location!=='undefined'){const q=new URLSearchParams(location.search);   // share links like  ?relay=wss://your-worker.workers.dev&turn=https://your-worker.workers.dev/turn
-  if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');if(q.get('overpass'))CFG.overpassUrl=q.get('overpass');}
+  if(q.get('relay')){CFG.transport='websocket';CFG.wsUrl=q.get('relay');}if(q.get('turn'))CFG.turnUrl=q.get('turn');if(q.get('overpass'))CFG.overpassUrl=q.get('overpass');
+  if(q.get('carto')){try{localStorage.setItem('tarmac.carto',q.get('carto'));}catch(e){}CFG.cartoKey=q.get('carto');}}
 const PROFILE={ // per-class speed bands (km/h). road = your original spec.
   road:{stealth:40,step:5,stepM:30,flare:70,blind:80,max:120,boom:3.5,minBoom:8,snap:'road'},
   foot:{stealth:12,step:3,stepM:30,flare:30,blind:36,max:45,boom:2.2,minBoom:3,snap:'all'},
@@ -1359,11 +1363,21 @@ const MODE_ORDER=['tron','outbreak','gridlock','vip','supply','border','ctf','ki
 const PAL=['#f5c842','#f48fb1','#7cc4f5','#9be564','#ff9f43','#c3a6ff','#5eead4','#ff6b5a'];
 function col(p){const g=G.pl[p.id]||{};if(g.role==='infected')return'#9be564';if(g.role==='murderer'&&G.mode==='disaster')return'#ff6b5a';if(g.role==='sheriff')return'#f5c842';if(g.role==='survivor')return'#f3efe4';if(g.role==='vip')return'#f5c842';if(g.role==='smuggler')return'#f48fb1';
   if(g.team==='red')return'#ff6b5a';if(g.team==='blue')return'#7cc4f5';let h=0;for(const c of p.id)h=(h*31+c.charCodeAt(0))>>>0;return PAL[h%PAL.length];}
+const cartoKey=()=>{if(CFG.cartoKey)return CFG.cartoKey;try{return localStorage.getItem('tarmac.carto')||'';}catch(e){return'';}};
+function baseLayer(){const k=cartoKey();                              // CARTO dark with a key, otherwise OpenStreetMap standard tiles darkened with a CSS filter
+  if(k)return L.tileLayer('https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key='+encodeURIComponent(k),{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO | road data: OpenFreeMap / Overpass'});
+  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'osm-dark',attribution:'&copy; OpenStreetMap contributors | road data: OpenFreeMap / Overpass'});}
+function workerBase(){return CFG.overpassUrl?CFG.overpassUrl.replace(/\/overpass\/?$/,''):(CFG.transport==='websocket'&&!/your-relay/.test(CFG.wsUrl)?CFG.wsUrl.replace(/^ws/,'http').replace(/\/+$/,''):'');}
+async function loadCartoKey(){const b=workerBase(),lab=$('#inCarto').closest('label');                  // the key lives in the Worker as a secret
+  if(!b||cartoKey()){if(lab)lab.hidden=!!b&&!!cartoKey();return;}
+  if(lab)lab.hidden=true;
+  try{const j=await(await fetch(b+'/carto-key',{cache:'no-store'})).json();if(j.key){CFG.cartoKey=j.key;View.refreshBase();return;}}catch(e){}
+  if(lab)lab.hidden=false;}                                                                    // no key from the Worker: show the manual box again
 const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
   init(){if(this.map)return;
     this.map=L.map('map',{zoomControl:false,attributionControl:true}).setView([DEMO.lat,DEMO.lon],16);
     this.map.createPane('riders').style.zIndex=450;this.map.createPane('me').style.zIndex=650;
-    this.tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO | road data: OpenFreeMap / Overpass'}).addTo(this.map);
+    this.tiles=baseLayer().addTo(this.map);
     this.canvas=L.canvas({padding:.5});this.graphL=L.layerGroup().addTo(this.map);this.hintL=L.layerGroup().addTo(this.map);
     this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
     setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();},500);},
@@ -1434,6 +1448,7 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     for(const x of lk.exits){const d=hyp(x.N.x-J.x,x.N.y-J.y)||1,f=Math.min(1,45/d),px=J.x+(x.N.x-J.x)*f,py=J.y+(x.N.y-J.y)*f;
       L.polyline([this.ll(J.x,J.y),this.ll(px,py)],{color:C[x.k],weight:7,opacity:.9,interactive:false}).addTo(this.hintL);
       L.marker(this.ll(px,py),{icon:L.divIcon({className:'',html:'<div class="pin" style="color:'+C[x.k]+'">'+x.k+'</div>',iconSize:[0,0]}),interactive:false}).addTo(this.hintL);}},
+  refreshBase(){if(!this.map||!this.tiles)return;this.map.removeLayer(this.tiles);this.tiles=baseLayer().addTo(this.map);this.tiles.bringToBack();},
   fit(){if(this.map){this.map.setView(this.ll(0,0),16);this.map.invalidateSize();this.drawGraph();}}};
 
 /* ================= UI ================= */
@@ -1491,7 +1506,7 @@ const UI={cur:'scrLobby',toastT:null,
 
 const Picker={map:null,mk:null,sel:null,_r:[],
   open(){$('#picker').hidden=false;
-    if(!this.map){this.map=L.map('pmap');L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(this.map);
+    if(!this.map){this.map=L.map('pmap');baseLayer().addTo(this.map);
       this.map.on('click',e=>this.set(e.latlng.lat,e.latlng.lng,'Dropped pin',true));}
     const h=P.get(me.id),c=G.cfg.dest?[G.cfg.dest.lat,G.cfg.dest.lon]:(h&&h.lat!=null?[h.lat,h.lon]:[DEMO.lat,DEMO.lon]);this.map.setView(c,14);setTimeout(()=>this.map.invalidateSize(),60);},
   set(lat,lon,label,rev){this.sel={lat,lon,label};if(!this.mk)this.mk=L.marker([lat,lon]).addTo(this.map);else this.mk.setLatLng([lat,lon]);$('#pSel').textContent=label;
@@ -1524,6 +1539,8 @@ const Arena={id:null,
 function startInputs(){if($('#chkVoice').checked||$('#chkShout').checked)Voice.start();if($('#chkShout').checked)Mic.startShout();if($('#chkChat').checked&&G.cfg.chat!=='off')Chat.start();}
 
 /* ================= wiring ================= */
+$('#inCarto').value=cartoKey();
+$('#inCarto').onchange=e=>{const v=e.target.value.trim();try{if(v)localStorage.setItem('tarmac.carto',v);else localStorage.removeItem('tarmac.carto');}catch(err){}CFG.cartoKey=v;UI.toast(v?'Key saved. Reload the page to use it on the map.':'Key cleared.',3000);};
 const BIKES=['low','high','foot','open'],BID={low:'#bikeLow',high:'#bikeHigh',foot:'#bikeFoot',open:'#bikeOpen'};
 function setBike(b){me.bike=b;for(const k of BIKES)$(BID[k]).setAttribute('aria-pressed',k===b);}
 for(const k of BIKES)$(BID[k]).onclick=()=>setBike(k);
@@ -1568,6 +1585,7 @@ $('#simSpd').oninput=e=>{$('#simVal').textContent=e.target.value;if(Sim.w)Sim.w.
 $('#simL').onclick=()=>{if(Sim.w)Sim.w.intent='L';};$('#simS').onclick=()=>{if(Sim.w)Sim.w.intent='S';};$('#simR').onclick=()=>{if(Sim.w)Sim.w.intent='R';};
 $('#simU').onclick=()=>Sim.u();
 $('#simGo').onclick=()=>{if(Sim.w){Sim.w.v+=9;Sim.w.vt=Math.max(Sim.w.vt,Sim.w.v);}};
+loadCartoKey();
 window.addEventListener('beforeunload',()=>{if(me.room)Net.send({type:'bye',id:me.id});});
 setInterval(()=>Chat.sync(),2000);
 setInterval(()=>{UI.tick();for(const[id,p]of P)if(!p.bot&&id!==me.id&&p.t&&now()-p.t>60000&&G.status==='lobby')P.delete(id);},250);
