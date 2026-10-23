@@ -123,6 +123,7 @@ input[type=text],input[type=number],select{width:100%;margin-top:4px;padding:12p
 .pin{transform:translate(-50%,-50%);font:400 24px 'Bagel Fat One';text-shadow:0 0 6px #000,0 0 3px #000;white-space:nowrap}
 .pin.r{color:var(--red)}.pin.b{color:var(--sky)}.pin.y{color:var(--yellow)}.pin.g{color:var(--grass)}.pin.w{color:#fff}
 .arrow{transform-origin:center;font-size:20px;color:var(--orange);text-shadow:0 0 6px #000;line-height:20px;text-align:center;width:20px;height:20px;margin:-10px 0 0 -10px}
+#edge .edgeP{position:absolute;transform:translate(-50%,-50%);text-align:center;font-size:11px;color:var(--c);line-height:1.1}#edge .edgeP i{display:block;font-style:normal;font-size:22px;text-shadow:0 0 4px #000}#edge .edgeP b{white-space:nowrap;text-shadow:0 0 4px #000,0 0 4px #000}
 img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) saturate(.45)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -183,6 +184,7 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <label class="f">Time limit<select id="selTime"><option value="default">Mode default</option><option value="0">No limit</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select></label>
     <label class="f">Arena centre<select id="selCenter"><option value="gps">My location</option><option value="demo">Demo streets (no GPS)</option></select></label>
     <label class="chk"><input id="chkMerge" type="checkbox"><span><b>Merge maps (remote play).</b> Riders in different towns play one match. Everyone stays in their own town. The host's town sets the layout and every other rider is shifted and rotated to fit its streets best. Objectives only appear where every town has a road. Landmark and fixed destinations are off.</span></label>
+    <label class="chk"><input id="chkReveal" type="checkbox"><span><b>Show every rider on the map.</b> Turns the stealth rules off. Handy for testing and friendly games. Standing still normally hides you.</span></label>
     <div id="destBox">
       <label class="f">Destination style<select id="selPoi"><option value="street">Street intersections</option><option value="tourist">Tourist spots and landmarks</option><option value="food">Food and drink (e.g. McDonald's)</option><option value="any">Any named place</option></select></label>
       <div id="fixedDest" class="row" style="align-items:center;margin-bottom:12px"><button class="btn alt" id="btnDest" style="flex:0 0 auto;padding:10px 12px;min-height:44px;font-size:16px">Set fixed destination</button><span id="destLbl" style="color:var(--dim)"></span><button class="btn ghost" id="btnClrDest" style="flex:0 0 auto;padding:8px 12px;min-height:40px;font-size:15px" hidden>Clear</button></div>
@@ -206,14 +208,14 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
     <div class="sig"><b class="disp" id="mRad">0</b><small>metres seen</small><em id="mState">Hidden</em></div>
   </header>
   <div id="hud"><div id="hudHead" class="disp"></div><div id="hudSub"></div></div>
-  <div id="mapwrap"><div id="map"></div><div id="blindTag">Rivals offline</div><div id="caption" aria-live="polite"></div></div>
+  <div id="mapwrap"><div id="map"></div><div id="blindTag">Rivals offline</div><div id="edge" style="position:absolute;inset:0;pointer-events:none;z-index:850"></div><div id="caption" aria-live="polite"></div></div>
   <div id="sim" hidden>
     <div class="row"><label style="flex:0 0 auto">Speed <b id="simVal">0</b> km/h</label><input id="simSpd" type="range" min="0" max="120" value="0" aria-label="Simulated speed"></div>
     <label class="chk"><input id="simReveal" type="checkbox"> Reveal hidden caches (practice only)</label>
     <div id="simInfo" style="color:var(--dim);font-size:14px;margin-top:6px">Roads are drawn on the map. Pick a turn for the next junction.</div>
     <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="simL">Left</button><button class="btn ghost" id="simS">Straight</button><button class="btn ghost" id="simR">Right</button><button class="btn ghost" id="simU">U-turn</button><button class="btn pink" id="simGo">Launch</button></div>
   </div>
-  <div id="dock"><span id="acts" style="display:contents"></span><label id="floorDock" hidden title="Your own quietest chat volume" style="display:flex;align-items:center;gap:6px;flex:1 1 150px;font-size:12px;color:var(--dim)">Chat floor<input id="rngFloorMine" type="range" min="0" max="100" step="5" value="20" style="width:100%"></label><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnSim" hidden>Sim</button><button class="btn ghost" id="btnLeave">Leave</button></div>
+  <div id="dock"><span id="acts" style="display:contents"></span><label id="floorDock" hidden title="Your own quietest chat volume" style="display:flex;align-items:center;gap:6px;flex:1 1 150px;font-size:12px;color:var(--dim)">Chat floor<input id="rngFloorMine" type="range" min="0" max="100" step="5" value="20" style="width:100%"></label><button class="btn ghost" id="btnMic" hidden>Mic on</button><button class="btn ghost" id="btnFind">Find riders</button><button class="btn ghost" id="btnMute">Voice on</button><button class="btn ghost" id="btnSim" hidden>Sim</button><button class="btn ghost" id="btnLeave">Leave</button></div>
 </section>
 
 <div id="picker" hidden>
@@ -233,14 +235,14 @@ img.osm-dark{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9) sa
 
 /* ================= CONFIG ================= */
 const CFG={
-  transport:'broadcast',                 // 'broadcast' (same device tabs) | 'websocket' | 'supabase'
-  wsUrl:'https://whasking.hamburgeer-com.workers.dev',  // relay-server.js
+  transport:'websocket',                 // 'websocket' (your Worker) | 'broadcast' (same-device tabs, add ?local=1) | 'supabase'
+  wsUrl:'wss://whasking.hamburgeer-com.workers.dev',   // your Cloudflare Worker. A ?relay= link, config.js or the saved relay still override it.
   supabaseUrl:'',supabaseKey:'',
   stealthKmh:40,stepKmh:5,stepMeters:30,flareKmh:70,blindKmh:80,maxKmh:120,
   cartoKey:'',           // free CARTO basemap key (https://carto.com/basemaps/apikey/). Also accepted as ?carto=KEY, and remembered on that phone.
   snapPositions:false,   // false = use raw GPS for positions. The street graph is only used for street names, flare paths and objectives.
-  overpassUrl:'https://whasking.hamburgeer-com.workers.dev/overpass',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
-  turnUrl:'https://whasking.hamburgeer-com.workers.dev/turn',            // optional Worker URL returning {iceServers:[...]} for WebRTC voice chat (see cloudflare/worker.js)
+  overpassUrl:'',        // street-data proxy. Derived from ?relay= (https://YOUR-WORKER/overpass) when blank.
+  turnUrl:'https://whasking.hamburgeer-com.workers.dev/turn',   // Worker route returning {iceServers:[...]} for voice chat (needs the TURN secrets, optional)
   boomAccel:3.5,boomMs:7000,
   trailMs:120000,trailGraceMs:3000,
   countdownMs:15000,parkedKmh:8
@@ -252,7 +254,8 @@ CFG.maxRadius=Math.ceil((CFG.maxKmh-CFG.stealthKmh)/CFG.stepKmh)*CFG.stepMeters;
   const relay=from('relay');if(relay){CFG.transport='websocket';CFG.wsUrl=relay;}
   const turn=from('turn');if(turn)CFG.turnUrl=turn;
   const ov=from('overpass');if(ov)CFG.overpassUrl=ov;
-  const ck=from('carto');if(ck)CFG.cartoKey=ck;}
+  const ck=from('carto');if(ck)CFG.cartoKey=ck;
+  if(q.get('local')){CFG.transport='broadcast';}}                       // ?local=1 : only tabs on this device see each other (testing)
 const VER='2026-10-22.5';   // both phones must run the same build. A mismatch is reported on screen.
 const PROFILE={ // per-class speed bands (km/h). road = your original spec.
   road:{stealth:40,step:5,stepM:30,flare:70,blind:80,max:120,boom:3.5,minBoom:8,snap:'road'},
@@ -663,7 +666,7 @@ const Net={ch:null,ws:null,sb:null,
 /* ================= state ================= */
 const me={id:rid(),name:'',bike:'low',room:''};
 const P=new Map();
-const newG=()=>({status:'lobby',mode:'tron',mods:{},cfg:{r:1500,bots:0,center:'gps',merge:false,chat:'on',chatFloor:20,chatR:400,poi:'street',dest:null,time:'default',rounds:6},hostId:null,arena:null,startAt:0,t0:0,pl:{},d:{},result:null,seq:0});
+const newG=()=>({status:'lobby',mode:'tron',mods:{},cfg:{r:1500,bots:0,center:'gps',merge:false,reveal:false,chat:'on',chatFloor:20,chatR:400,poi:'street',dest:null,time:'default',rounds:6},hostId:null,arena:null,startAt:0,t0:0,pl:{},d:{},result:null,seq:0});
 let G=newG();
 const isHost=()=>G.hostId===me.id;
 const rl=id=>(G.pl[id]||{}).role,tmOf=id=>(G.pl[id]||{}).team;
@@ -749,6 +752,7 @@ function visInfo(p,viewer){
   let show=kmh>stl,flare=kmh>pr.flare,flash=null,boom=false,forced=false;
   if(o.hide)show=false;if(o.show){show=true;forced=true;}if(o.radius!=null)radius=Math.max(radius,o.radius);if(o.flare)flare=true;if(o.flash)flash=o.flash;
   if(M&&M.teams&&viewer&&tmOf(viewer.id)&&tmOf(viewer.id)===tmOf(p.id))show=true;
+  if(((G.cfg&&G.cfg.reveal)||(G.merge&&(G.status==='countdown'||(G.status==='running'&&t-G.t0<10000))))&&!(G.pl[p.id]||{}).out)show=true;   // testing switch, and everyone is visible while a merged match starts
   if(t<(p.boomUntil||0)){show=true;boom=true;}                       // Sonic Boom bypasses every stealth rule
   if((G.pl[p.id]||{}).alive===false)show=false;
   return show?{radius,flare:flare&&p.fl&&p.fl.length>0,flash,boom,exact:boom||forced}:null;}
@@ -830,7 +834,7 @@ function alignJunctions(Hs,Js,r){      // find rotation + shift of Js that lays 
   const g2=occ(12);let best=null;
   for(const[,th0,tx0,ty0]of cands)for(let th=th0-15;th<=th0+15;th+=3)for(let tx=tx0-30;tx<=tx0+30;tx+=6)for(let ty=ty0-30;ty<=ty0+30;ty+=6){const n=sc(g2,th,tx,ty);if(!best||n>best.score)best={score:n,th:((th%360)+360)%360,tx,ty};}
   best.n=J.length;return best;}
-const Merge={id:null,data:new Map(),
+const Merge={id:null,data:new Map(),shared:[],sharedId:null,
   maskOf(r){const R=r+100,N=Math.ceil(2*R/20),bits=new Uint8Array(Math.ceil(N*N/8));
     const mark=(x,y)=>{const cx=Math.floor((x+R)/20),cy=Math.floor((y+R)/20);if(cx<0||cy<0||cx>=N||cy>=N)return;const i=cy*N+cx;bits[i>>3]|=1<<(i&7);};
     for(const sg of Graph.segs){const A=Graph.nodes.get(sg.a),B=Graph.nodes.get(sg.b),L=hyp(B.x-A.x,B.y-A.y),k=Math.max(1,Math.ceil(L/10));for(let i=0;i<=k;i++)mark(A.x+(B.x-A.x)*i/k,A.y+(B.y-A.y)*i/k);}
@@ -866,6 +870,8 @@ const Merge={id:null,data:new Map(),
     if(!sol.poor)Graph.junc=sol.common;
     for(const n of Graph.nodes.values())n.label='{J:'+Math.round(n.x)+','+Math.round(n.y)+'}';                    // host-town names become tokens each phone resolves in its own town
     G.merge={id:this.id,an,tf,info:sol.info.map(i=>({n:nm(i.id),pct:i.pct})),shared:sol.poor?0:sol.common.length};
+    const flat=[];for(const n of(sol.poor?[]:sol.common).slice(0,500))flat.push(Math.round(n.x),Math.round(n.y));
+    this.shared=flat;this.sharedId=this.id;Net.send({type:'mergeCommon',id:this.id,pts:flat});                       // every phone draws the shared grid
     Virt.on=true;Virt.set(tf[me.id]);rebase();
     UI.toast(sol.poor?'Maps overlap poorly: objectives may land off-road for some riders.':'Maps merged. '+sol.common.length+' shared locations. Overlap: '+G.merge.info.map(i=>i.n+' '+i.pct+'%').join(', '),9000);
     return true;}};
@@ -876,6 +882,8 @@ const Host={tm:null,n:0,
     if(missing.length){UI.toast('Waiting for a GPS fix from '+missing.map(p=>p.name).join(', '),4000);return;}
     if(humans.length+G.cfg.bots<M.min){UI.toast(M.name+' needs '+M.min+'+ riders. Add practice bots to test.',4000);return;}
     if(G.cfg.center==='gps'&&P.get(me.id).sx==null){UI.toast('No GPS fix yet.');return;}
+    if(!G.cfg.merge&&G.cfg.center!=='demo'){const h0=P.get(me.id),isDemo=q=>Math.abs(q.lat-DEMO.lat)<1e-6&&Math.abs(q.lon-DEMO.lon)<1e-6,far=humans.filter(q=>q.id!==me.id&&q.lat!=null&&!isDemo(q)&&hyp((q.lon-h0.lon)*111320*Math.cos(h0.lat*D2R),(q.lat-h0.lat)*110540)>20000);
+      if(far.length){UI.toast(far.map(q=>q.name).join(', ')+' is more than 20 km from you. Tick "Merge maps (remote play)" to play together, or start with nearby riders only.',10000);return;}}
     if(G.cfg.merge){G.cfg.poi='street';G.cfg.dest=null;}                  // landmarks and fixed spots only exist in one town
     $('#btnStart').disabled=true;UI.toast('Loading streets…',5000);
     const h=P.get(me.id);let c=G.cfg.center==='demo'?DEMO:{lat:h.lat,lon:h.lon},r=G.cfg.r;
@@ -1487,8 +1495,8 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     this.map.createPane('riders').style.zIndex=450;this.map.createPane('me').style.zIndex=650;
     this.tiles=baseLayer().addTo(this.map);
     this.canvas=L.canvas({padding:.5});this.graphL=L.layerGroup().addTo(this.map);this.hintL=L.layerGroup().addTo(this.map);
-    this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
-    setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();},500);},
+    this.sharedL=L.layerGroup().addTo(this.map);this.over=L.layerGroup().addTo(this.map);this.map.on('dragstart',()=>{this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,8000);});
+    setInterval(()=>this.frame(),100);setInterval(()=>{this.overlay();this.trails();this.simHint();const k=G.merge?G.merge.id+':'+Merge.shared.length:'';if(k!==this._sk){this._sk=k;this.drawShared();}},500);},
   ll(x,y){const q=Virt.on?Virt.toLocal([x,y]):[x,y];return Geo.ll(q[0],q[1]);},
   icon(p,cls){return L.divIcon({className:'',iconSize:[0,0],html:'<div class="rider '+cls+'" style="--c:'+col(p)+'"><i></i><b>'+esc(p.name)+'</b></div>'});},
   frame(){const m=P.get(me.id);if(!m||m.sx==null||G.status==='lobby'||!this.map)return;
@@ -1514,7 +1522,8 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
         const el=o.a.getElement();if(el)el.firstChild.style.transform='rotate('+brg+'deg)';}
       else if(o.f){this.map.removeLayer(o.f);this.map.removeLayer(o.a);o.f=o.a=null;}}
     for(const[id,o]of this.mk)if(!seen.has(id)&&!(blind&&id!==me.id)){for(const k of['m','c','f','a'])if(o[k])this.map.removeLayer(o[k]);this.mk.delete(id);}
-    if(!this.free)this.map.panTo(this.ll(m.rx,m.ry),{animate:false});},
+    if(!this.free)this.map.panTo(this.ll(m.rx,m.ry),{animate:false});
+    this.edges(blind?[]:[...P.values()].filter(q=>q.id!==me.id&&seen.has(q.id)).map(q=>({p:q})));},
   trails(){if(G.mode!=='tron'||G.status==='lobby'||!this.map||isBlind())return;const t=now();
     for(const p of P.values()){const a=Trails.get(p.id);if(!a)continue;
       const pts=a.filter(q=>t-q.t<=CFG.trailMs&&t-q.t>=CFG.trailGraceMs).map(q=>this.ll(q.x,q.y));let l=this.trail.get(p.id);
@@ -1556,6 +1565,16 @@ const View={map:null,mk:new Map(),trail:new Map(),free:false,wasBlind:false,
     for(const x of lk.exits){const d=hyp(x.N.x-J.x,x.N.y-J.y)||1,f=Math.min(1,45/d),px=J.x+(x.N.x-J.x)*f,py=J.y+(x.N.y-J.y)*f;
       L.polyline([Geo.ll(J.x,J.y),Geo.ll(px,py)],{color:C[x.k],weight:7,opacity:.9,interactive:false}).addTo(this.hintL);
       L.marker(Geo.ll(px,py),{icon:L.divIcon({className:'',html:'<div class="pin" style="color:'+C[x.k]+'">'+x.k+'</div>',iconSize:[0,0]}),interactive:false}).addTo(this.hintL);}},
+  drawShared(){if(!this.sharedL)return;this.sharedL.clearLayers();if(!G.merge||Merge.sharedId!==G.merge.id)return;
+    for(let i=0;i+1<Merge.shared.length;i+=2)L.circleMarker(this.ll(Merge.shared[i],Merge.shared[i+1]),{renderer:this.canvas,radius:3,color:'#9be564',weight:1,fillOpacity:.7,interactive:false}).addTo(this.sharedL);
+    L.marker(this.ll(0,0),{icon:L.divIcon({className:'',html:'<div class="pin g">MERGE POINT</div>',iconSize:[0,0]}),interactive:false}).addTo(this.sharedL);},
+  edges(list){const box=$('#edge');if(!box||!this.map)return;const sz=this.map.getSize(),m=P.get(me.id);let h='';
+    for(const{p}of list){const pt=this.map.latLngToContainerPoint(this.ll(p.rx,p.ry));
+      if(pt.x>=24&&pt.x<=sz.x-24&&pt.y>=24&&pt.y<=sz.y-24)continue;                                  // off screen: point at it
+      const dx=pt.x-sz.x/2,dy=pt.y-sz.y/2,k=Math.min((sz.x/2-30)/Math.max(Math.abs(dx),1e-6),(sz.y/2-30)/Math.max(Math.abs(dy),1e-6)),d=hyp(p.sx-m.sx,p.sy-m.sy);
+      h+='<div class="edgeP" style="left:'+(sz.x/2+dx*k)+'px;top:'+(sz.y/2+dy*k)+'px;--c:'+col(p)+'"><i style="transform:rotate('+(Math.atan2(dx,-dy)*180/Math.PI)+'deg)">&#9650;</i><b>'+esc(p.name)+' '+(d>=1000?(d/1000).toFixed(1)+' km':Math.round(d)+' m')+'</b></div>';}
+    box.innerHTML=h;},
+  findAll(){if(!this.map)return;const pts=[];for(const[id,o]of this.mk)if(o.m)pts.push(o.m.getLatLng());if(pts.length>1){this.map.fitBounds(L.latLngBounds(pts),{padding:[50,50],maxZoom:17});this.free=true;clearTimeout(this._t);this._t=setTimeout(()=>this.free=false,10000);}else UI.toast('No other rider is visible. Standing still hides riders. The host can tick "Show every rider".',4000);},
   refreshBase(){if(!this.map||!this.tiles)return;this.map.removeLayer(this.tiles);this.tiles=baseLayer().addTo(this.map);this.tiles.bringToBack();},
   fit(){if(this.map){this.map.setView(Geo.ll(0,0),16);this.map.invalidateSize();this.drawGraph();}}};
 
@@ -1578,7 +1597,7 @@ const UI={cur:'scrLobby',toastT:null,
     $('#selChat').value=G.cfg.chat==='off'?'off':'on';$('#selChatR').value=G.cfg.chatR;$('#rngFloor').value=G.cfg.chatFloor;$('#floorVal').textContent=G.cfg.chatFloor;$('#floorWrap').hidden=G.cfg.chat==='off';$('#chatRWrap').hidden=G.cfg.chat==='off'||G.cfg.chatFloor>=100;$('#selPoi').value=G.cfg.poi;
     const dm=['gridlock','vip','catmouse'].includes(G.mode);$('#destBox').hidden=!dm;$('#fixedDest').hidden=!(G.mode==='gridlock'&&!G.mods.duel);
     $('#destLbl').textContent=G.cfg.dest?G.cfg.dest.label:'Random';$('#btnClrDest').hidden=!G.cfg.dest||!host;$('#btnDest').disabled=!host;
-    $('#chkMerge').checked=!!G.cfg.merge;$('#chkMerge').disabled=!host;
+    $('#chkMerge').checked=!!G.cfg.merge;$('#chkMerge').disabled=!host;$('#chkReveal').checked=!!G.cfg.reveal;$('#chkReveal').disabled=!host;
     $('#roundsWrap').hidden=!['disaster','mystery'].includes(G.mode);$('#selRounds').value=G.cfg.rounds;
     for(const s of['#selChat','#selChatR','#rngFloor','#selPoi','#selTime','#selRounds'])$(s).disabled=!host;
     {const dm_=timeLimitMin0();$('#selTime').options[0].textContent='Mode default ('+(dm_?dm_+' min':'no limit')+')';$('#selTime').value=G.cfg.time;}
@@ -1608,7 +1627,7 @@ const UI={cur:'scrLobby',toastT:null,
     $('#btnSim').hidden=!Sim.on;
     const ov=$('#overlay');
     if(G.status==='countdown'){const s=Math.max(0,Math.ceil((G.startAt-now())/1000));ov.hidden=false;
-      ov.dataset.k='';ov.innerHTML='<div class="big disp">'+s+'</div><h2 class="disp">'+M.name+'</h2><p>Loading streets and roles. Stay legal and ride smart.</p>';
+      ov.dataset.k='';ov.innerHTML='<div class="big disp">'+s+'</div><h2 class="disp">'+M.name+'</h2><p>Loading streets and roles. Stay legal and ride smart.</p>'+(G.merge?'<p>Maps merged: '+G.merge.shared+' shared locations. '+G.merge.info.map(i=>esc(i.n)+' overlap '+i.pct+'%').join(', ')+'. Everyone is visible for the first seconds so you can find each other. Look for the green dots and the MERGE POINT.</p>':'');
       if([10,5,3,2,1].includes(s))Say.say(String(s),{key:'cd'+s,cd:4000});}
     else if(G.status==='ended'&&G.result){ov.hidden=false;const rk=G.result.title+G.result.lines.join('|');if(ov.dataset.k!==rk){ov.dataset.k=rk;
       ov.innerHTML='<h2 class="disp">'+esc(tok(G.result.title))+'</h2>'+(G.result.lines.length?'<ol>'+G.result.lines.map(l=>'<li>'+esc(tok(l).replace(/^\d+\.\s*/,''))+'</li>').join('')+'</ol>':'')+(isHost()?'<button class="btn" id="btnBack">Back to lobby</button>':'<p>Waiting for the host.</p>');}}
@@ -1642,6 +1661,7 @@ function onNet(m){
     case 'rtc':Chat.onRtc(m);break;
     case 'mergeReq':if(!isHost())Merge.onReq(m);break;
     case 'mergeData':if(isHost())Merge.onData(m);break;
+    case 'mergeCommon':Merge.shared=m.pts;Merge.sharedId=m.id;break;
     case 'act':if(isHost())Host.act(m);break;
     case 'bye':P.delete(m.id);if(isHost())Host.push();break;}}
 
@@ -1685,6 +1705,7 @@ $('#mods').onchange=e=>{const k=e.target.dataset.mod;if(k&&isHost()){G.mods[k]=e
 $('#selR').onchange=e=>{G.cfg.r=+e.target.value;cfgChanged();};
 $('#selBots').onchange=e=>{G.cfg.bots=+e.target.value;cfgChanged();};
 $('#selCenter').onchange=e=>{G.cfg.center=e.target.value;cfgChanged();};
+$('#chkReveal').onchange=e=>{G.cfg.reveal=e.target.checked;cfgChanged();};
 $('#chkMerge').onchange=e=>{G.cfg.merge=e.target.checked;cfgChanged();};
 $('#selRounds').onchange=e=>{G.cfg.rounds=+e.target.value;cfgChanged();};
 $('#selTime').onchange=e=>{G.cfg.time=e.target.value;cfgChanged();};
@@ -1703,6 +1724,7 @@ $('#pOk').onclick=()=>{if(!Picker.sel){UI.toast('Pick a spot first.');return;}G.
 $('#btnMic').onclick=e=>{if(!Mic.stream)return;const tr=Mic.stream.getAudioTracks(),on=!(tr[0]&&tr[0].enabled);tr.forEach(t=>t.enabled=on);e.target.textContent=on?'Mic on':'Mic muted';};
 $('#btnStart').onclick=()=>Host.start();
 $('#dock').onclick=e=>{const a=e.target.closest('[data-act]');if(a)Act.do(a.dataset.act);};
+$('#btnFind').onclick=()=>View.findAll();
 $('#btnMute').onclick=e=>{Say.on=!Say.on;e.target.textContent=Say.on?'Voice on':'Voice off';if(!Say.on)speechSynthesis.cancel();};
 $('#btnSim').onclick=()=>{const s=$('#sim');s.hidden=!s.hidden;setTimeout(()=>View.map.invalidateSize(),50);};
 $('#btnLeave').onclick=()=>{Net.send({type:'bye',id:me.id});location.reload();};
